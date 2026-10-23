@@ -1,0 +1,83 @@
+[
+ {
+  "path": "reference/docs/pcetech.txt",
+  "url": "https://web.archive.org/web/2016id_/http://cgfm2.emuviews.com/txt/pcetech.txt",
+  "sha256": "ce6e4325c0f279bd43b9c6501eaf0a9637e9d4fda4b55131895122da1430c25e",
+  "size": 74935,
+  "kind": "document",
+  "license": "Charles MacDonald, 'Unpublished work Copyright 2001, 2002' (freely distributed; UNVERIFIED licence)",
+  "note": "Charles MacDonald, TurboGrafx-16 Hardware Notes (pcetech.txt), via the Wayback copy of cgfm2.emuviews.com. NOTE: swaps the chip names (section 5 titled HuC6260 'Video Display Controller' is the HuC6270 VDC; section 6 'HuC6270 Video Color Encoder' is the HuC6260 VCE): conflict C1"
+ },
+ {
+  "path": "reference/docs/pcedev-wiki/CPU_addresses.txt",
+  "url": "https://pce.nesdev.org/w/index.php?title=CPU_addresses&action=raw",
+  "sha256": "b065a2cc4482eb63ca63c3c5fabe5dcbd3d95acfcc25ecc5e96af21345379ef7",
+  "size": 1065,
+  "kind": "live-document",
+  "license": "PCEdev Wiki (pce.nesdev.org), MediaWiki raw page; licence not stated (UNVERIFIED)",
+  "note": "PCEdev Wiki page 'CPU_addresses' (raw wikitext, 2026-10-23); small community wiki. Contains a spam paragraph; ignore it."
+ },
+ {
+  "path": "reference/docs/pcedev-wiki/CPU_memory_map.txt",
+  "url": "https://pce.nesdev.org/w/index.php?title=CPU_memory_map&action=raw",
+  "sha256": "9e28a5fcd81f8ba93b0da52dacbe0415e020f2686a29b7b805a0c1f6b67e8ea3",
+  "size": 2509,
+  "kind": "live-document",
+  "license": "PCEdev Wiki (pce.nesdev.org), MediaWiki raw page; licence not stated (UNVERIFIED)",
+  "note": "PCEdev Wiki page 'CPU_memory_map' (raw wikitext, 2026-10-23); small community wiki. "
+ },
+ {
+  "path": "reference/docs/pcedev-wiki/CPU_pinout.txt",
+  "url": "https://pce.nesdev.org/w/index.php?title=CPU_pinout&action=raw",
+  "sha256": "4903cc1136c54c2427e4e72ece91d135106782bc65ce0cdfee44e128db6f4745",
+  "size": 5140,
+  "kind": "live-document",
+  "license": "PCEdev Wiki (pce.nesdev.org), MediaWiki raw page; licence not stated (UNVERIFIED)",
+  "note": "PCEdev Wiki page 'CPU_pinout' (raw wikitext, 2026-10-23); small community wiki. "
+ },
+ {
+  "path": "reference/docs/pcedev-wiki/EXT_BUS_pinout.txt",
+  "url": "https://pce.nesdev.org/w/index.php?title=EXT_BUS_pinout&action=raw",
+  "sha256": "6d000e24a0456217c26c24195b93a315e27f091705aa5aeff2a4eb0e6e02a6df",
+  "size": 2346,
+  "kind": "live-document",
+  "license": "PCEdev Wiki (pce.nesdev.org), MediaWiki raw page; licence not stated (UNVERIFIED)",
+  "note": "PCEdev Wiki page 'EXT_BUS_pinout' (raw wikitext, 2026-10-23); small community wiki. "
+ },
+ {
+  "path": "reference/docs/pcedev-wiki/HuCard_pinout.txt",
+  "url": "https://pce.nesdev.org/w/index.php?title=HuCard_pinout&action=raw",
+  "sha256": "deb7b3b12c05c66d8ec32cba7cb461e05c418568686b0bb751bda23d1bdf2bed",
+  "size": 2117,
+  "kind": "live-document",
+  "license": "PCEdev Wiki (pce.nesdev.org), MediaWiki raw page; licence not stated (UNVERIFIED)",
+  "note": "PCEdev Wiki page 'HuCard_pinout' (raw wikitext, 2026-10-23); small community wiki. "
+ },
+ {
+  "path": "reference/docs/pcedev-wiki/Timing.txt",
+  "url": "https://pce.nesdev.org/w/index.php?title=Timing&action=raw",
+  "sha256": "79db8b6bd9d3055f6db1d6c584c822e43ad870627528a04559226a13846f22f3",
+  "size": 496,
+  "kind": "live-document",
+  "license": "PCEdev Wiki (pce.nesdev.org), MediaWiki raw page; licence not stated (UNVERIFIED)",
+  "note": "PCEdev Wiki page 'Timing' (raw wikitext, 2026-10-23); small community wiki. "
+ },
+ {
+  "path": "reference/docs/pcedev-wiki/VCE_pinout.txt",
+  "url": "https://pce.nesdev.org/w/index.php?title=VCE_pinout&action=raw",
+  "sha256": "94c56747d9d545d486d13b2eb9ed86f33e3870a5e53e6669104447d8c6d95084",
+  "size": 5411,
+  "kind": "live-document",
+  "license": "PCEdev Wiki (pce.nesdev.org), MediaWiki raw page; licence not stated (UNVERIFIED)",
+  "note": "PCEdev Wiki page 'VCE_pinout' (raw wikitext, 2026-10-23); small community wiki. "
+ },
+ {
+  "path": "reference/docs/pcedev-wiki/VDC_pinout.txt",
+  "url": "https://pce.nesdev.org/w/index.php?title=VDC_pinout&action=raw",
+  "sha256": "8f8a72976d59d61e326ba8dfb08dbf9a1c9a5dd3dfc4d47ed44b2b176b2811be",
+  "size": 5062,
+  "kind": "live-document",
+  "license": "PCEdev Wiki (pce.nesdev.org), MediaWiki raw page; licence not stated (UNVERIFIED)",
+  "note": "PCEdev Wiki page 'VDC_pinout' (raw wikitext, 2026-10-23); small community wiki. "
+ }
+]

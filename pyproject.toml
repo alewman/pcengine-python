@@ -1,0 +1,10 @@
+# Tooling only for now: there is no package yet (see docs/handoff-brief.md).
+# The floor is the newest Python PyPy supports (3.11); scripts need Pillow
+# (mame_screens.py, detectors_compare.py) and the system's mame, 7z and chdman.
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["reference", "tests/test_roms", "tests/mame_traces", "tests/runs"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["E501"]

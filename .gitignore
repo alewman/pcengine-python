@@ -1,0 +1,46 @@
+# Python and package builds
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environments and tooling
+.venv/
+.venv-*/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Fetched references, tools and test programs; scripts/fetch_references.py
+# fills reference/ from scripts/pinned_files.json and scripts/pinned_repos.json.
+# Never commit them: third-party documents, programs and source trees.
+reference/
+tests/test_roms/
+
+# HuCards, CD images, the System Card and other BIOS are bring-your-own:
+# never commit one.
+*.pce
+*.sgx
+*.bin
+*.rom
+*.chd
+*.cue
+*.iso
+*.7z
+*.zip
+*.bin.gz
+
+# Oracle runs (scripts/mame_trace.py, libretro_run.py, mesen_run.py): traces,
+# snapshots, error.log, cfg, nvram.
+tests/mame_traces/
+tests/runs/
+*.trace
+error.log
+
+# Battery saves and backup RAM.
+*.srm
+*.sav
+*.bram

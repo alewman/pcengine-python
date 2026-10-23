@@ -1,0 +1,217 @@
+[
+ {
+  "path": "reference/src/mame",
+  "url": "https://github.com/mamedev/mame",
+  "rev": "f379cd060ac3b2bd567ebbd0957aed059d6895ff",
+  "date": "2026-01-30T02:02:37+11:00",
+  "sparse": [
+   "/COPYING",
+   "/README.md",
+   "/src/devices/video/huc6270.*",
+   "/src/devices/video/huc6260.*",
+   "/src/devices/video/huc6202.*",
+   "/src/devices/cpu/h6280/",
+   "/src/devices/sound/c6280.*",
+   "/src/devices/sound/msm5205.*",
+   "/src/devices/bus/pce/",
+   "/src/devices/machine/pce_cd.*",
+   "/src/mame/nec/pce*",
+   "/src/mame/drivers/pce*",
+   "/hash/pce.xml",
+   "/hash/pcecd.xml",
+   "/hash/tg16.xml",
+   "/hash/sgx.xml"
+  ],
+  "license": "GPL-2.0+/BSD-3 per file (read and cite only; never copy)",
+  "note": "MAME tag mame0285 (the version at /usr/games/mame): pce/tg16/sgx/pcecd drivers, HuC6270/6260/6202, H6280, C6280 PSG, MSM5205, pce_cd. Detector; the second-longest-lived PCE core"
+ },
+ {
+  "path": "reference/src/mednafen-pce-dev",
+  "url": "https://github.com/pce-devel/mednafenPceDev",
+  "rev": "55dba394a75f935e6e5a51876b0d523d2314300c",
+  "date": "2025-07-02T18:46:50-07:00",
+  "sparse": [],
+  "license": "GPL-2.0+ (read and cite only; never copy)",
+  "note": "pce-devel's managed Mednafen with PCE fixes (src/pce, src/pce_fast, src/cdrom): the long-standing PCE accuracy reference (Mednafen's PCE core) in a buildable tree. Detector (tier 5) unless it cites a hardware measurement"
+ },
+ {
+  "path": "reference/src/beetle-pce",
+  "url": "https://github.com/libretro/beetle-pce-libretro",
+  "rev": "b96c11e095b6a40a412d2da02766ae1c3f4fd539",
+  "date": "2026-09-26T12:30:44+02:00",
+  "sparse": [],
+  "license": "GPL-2.0+ (read, cite and RUN; never copy)",
+  "note": "Mednafen's PCE core as a libretro core: buildable here without SDL, so it can be driven headless by a ctypes host (scripts/libretro_run.py)"
+ },
+ {
+  "path": "reference/src/geargrafx",
+  "url": "https://github.com/drhelius/Geargrafx",
+  "rev": "57c257dda25f441fff3c63a63bbc4ba7cbb713e3",
+  "date": "2026-10-22T23:22:29+02:00",
+  "sparse": [
+   "/LICENSE",
+   "/README.md",
+   "/src/",
+   "/platforms/libretro/"
+  ],
+  "license": "GPL-3.0 (read and cite only; never copy)",
+  "note": "Geargrafx (drhelius): PCE/SGX/CD emulator with a debugger; readable independent core. Detector"
+ },
+ {
+  "path": "reference/src/ares",
+  "url": "https://github.com/ares-emulator/ares",
+  "rev": "c76aaffa6e69778baf9a66d1da04298ac2ed7d1d",
+  "date": "2026-10-22T23:02:05+01:00",
+  "sparse": [
+   "/LICENSE",
+   "/README.md",
+   "/ares/pce/",
+   "/ares/component/processor/huc6280/",
+   "/ares/component/video/huc6270/",
+   "/ares/component/video/huc6260/",
+   "/ares/component/audio/c6280/"
+  ],
+  "license": "ISC (read and cite only; never copy)",
+  "note": "ares PC Engine core: per-cycle HuC6280 and VDC/VCE written by byuu/Near's successors. Detector"
+ },
+ {
+  "path": "reference/src/mesen2",
+  "url": "https://github.com/SourMesen/Mesen2",
+  "rev": "b9fa69ddc6d0a331fb103fdb5eef6904305703c2",
+  "date": "2026-06-04T18:31:24+09:00",
+  "sparse": [
+   "/LICENSE",
+   "/README.md",
+   "/Core/PCE/"
+  ],
+  "license": "GPL-3.0 (read and cite only; never copy)",
+  "note": "Mesen2 2.1.1 (the commit snes-python and famicom-python pin): its PC Engine core (Core/PCE). The SingleStepTests/huc6280 README calls Mesen 'maybe the most accurate HuC6280 emulator'. Runnable headless via MesenCore.so"
+ },
+ {
+  "path": "reference/src/turbografx-mister",
+  "url": "https://github.com/MiSTer-devel/TurboGrafx16_MiSTer",
+  "rev": "827d45f45799b8ab3a536510847f2108a92e81bd",
+  "date": "2026-07-10T00:11:30+08:00",
+  "sparse": [
+   "/README.md",
+   "/rtl/"
+  ],
+  "license": "GPL-2.0+ (read and cite only; never copy)",
+  "note": "TurboGrafx16 MiSTer FPGA core (rtl/): a reconstruction, not a die model; shows what an FPGA needed for hardware-matching timing. Detector"
+ },
+ {
+  "path": "reference/src/pce-controller-info",
+  "url": "https://github.com/pce-devel/PCE_Controller_Info",
+  "rev": "1d9c76c3ec041d20f959c7a7aaae38aaffe0fdcd",
+  "date": "2022-09-11T19:50:22-04:00",
+  "sparse": [],
+  "license": "see repository (UNVERIFIED)",
+  "note": "pce-devel: controller signalling on the PC Engine (2-button, multitap, 6-button Avenue Pad, mouse), community-measured"
+ },
+ {
+  "path": "reference/src/pce-soundtest",
+  "url": "https://github.com/pce-devel/PCE_Soundtest",
+  "rev": "a3c987d6caefe90d7abbd082002a823d22946af4",
+  "date": "2021-07-31T13:45:57-04:00",
+  "sparse": [],
+  "license": "see repository (UNVERIFIED)",
+  "note": "pce-devel: a quick test of HuC6280 vs HuC6280A differences (PSG) -- a candidate test program"
+ },
+ {
+  "path": "reference/src/pce-games-with-bugs",
+  "url": "https://github.com/pce-devel/PCE_Games_with_Bugs",
+  "rev": "d31dc8aa2c57710ab25692d41d1821ec2e9475a7",
+  "date": "2022-07-11T17:50:26-04:00",
+  "sparse": [],
+  "license": "see repository (UNVERIFIED)",
+  "note": "pce-devel: documents on games with bugs (software bugs a board must reproduce, not fix)"
+ },
+ {
+  "path": "reference/src/tg16-palette",
+  "url": "https://github.com/pce-devel/TG16_Palette",
+  "rev": "4b0739d2753fc9d20ef36b0fd68fd001a3b85fd9",
+  "date": "2025-03-09T10:48:20-07:00",
+  "sparse": [],
+  "license": "see repository (UNVERIFIED)",
+  "note": "pce-devel: composite palette generation for the PCE/TG16 (VCE colour output research)"
+ },
+ {
+  "path": "reference/src/pce-cd-seek",
+  "url": "https://github.com/pce-devel/PCECD_seek",
+  "rev": "7b9a70702d2f5422b924ee3cf7d42ff3ae5436ad",
+  "date": "2021-07-31T12:01:41-04:00",
+  "sparse": [],
+  "license": "see repository (UNVERIFIED)",
+  "note": "pce-devel: measured/calculated CD-ROM seek times for PC Engine drives (CD milestone)"
+ },
+ {
+  "path": "reference/src/huc",
+  "url": "https://github.com/pce-devel/huc",
+  "rev": "54f5c73606c1e7142e8095c727cab2767e2b3cb3",
+  "date": "2026-09-09T20:11:36-04:00",
+  "sparse": [
+   "/README.md",
+   "/LICENSE*",
+   "/src/",
+   "/include/",
+   "/doc/"
+  ],
+  "license": "see repository",
+  "note": "HuC / PCEAS: the PC Engine C compiler and assembler; builds our own small test programs and the 240p Test Suite"
+ },
+ {
+  "path": "reference/src/240pTestSuite",
+  "url": "https://github.com/ArtemioUrbina/240pTestSuite",
+  "rev": "89adfdd66853746fa9db9105104314ac58021791",
+  "date": "2026-09-25T18:05:59-06:00",
+  "sparse": [
+   "/LICENSE",
+   "/README.md",
+   "/240psuite/PCE/*.c",
+   "/240psuite/PCE/*.h",
+   "/240psuite/PCE/*.bat",
+   "/240psuite/PCE/README.TXT",
+   "/240psuite/PCE/*.cue"
+  ],
+  "license": "GPL-2.0",
+  "note": "240p Test Suite PCE source (HuCard and CD builds); prebuilt ROMs are on itch.io only (no stable URL), so we build with HuC"
+ },
+ {
+  "path": "reference/src/pcengine-testroms",
+  "url": "https://github.com/rgalland/PCEngine_TestRoms",
+  "rev": "1b2d56c2d59d927df781ae41dd3a4c3ada053052",
+  "date": "2023-10-26T01:01:56+02:00",
+  "sparse": [
+   "/README.md",
+   "/BG_128x64/",
+   "/BG_64x32/",
+   "/LATCHING_TEST/",
+   "/LOADING_SCREEN/",
+   "/SPRITE/"
+  ],
+  "license": "see repository (UNVERIFIED)",
+  "note": "rgalland: small PCEAS test programs (BG sizes, latching, sprite); sources only"
+ },
+ {
+  "path": "reference/src/single-step-huc6280",
+  "url": "https://github.com/SingleStepTests/huc6280",
+  "rev": "4ce378e04e243437e6f74dfe76c3cb7c70e45bf1",
+  "date": "2025-07-06T11:30:21-04:00",
+  "sparse": [
+   "/README.md",
+   "/LICENSE",
+   "/transcode_json.py"
+  ],
+  "license": "see repository",
+  "note": "HuC6280 single-step tests, generated BY MESEN (185 MB, binary): emulator-derived, the CPU core's concern; only the README is fetched here"
+ },
+ {
+  "path": "reference/src/oss-pce-cd-bios",
+  "url": "https://github.com/mao2009/oss-pce-cd-bios",
+  "rev": "23867a4350cb88b27c01ee0428b9371f8935f6f7",
+  "date": "2026-10-23T13:13:21+09:00",
+  "sparse": [],
+  "license": "see repository (UNVERIFIED)",
+  "note": "An open-source System Card replacement (new, 2026-10); a possible BIOS-free CD path; check licence and maturity before relying on it"
+ }
+]
