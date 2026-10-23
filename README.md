@@ -14,7 +14,7 @@ for add-on boards.
 14 open decisions). Measured while gathering: MAME 0.285, Mesen2 (famicom-python's headless build,
 after setting the config the DLL lacks), Beetle PCE (Mednafen's core, built from the pinned tree) and
 Geargrafx all run here headless; 35 library cards start on all three of the first; the CD boots the
-Super System Card screen on four emulators; the only tier-1 (hardware-photographed) judge found is
+Super System Card screen on three of them; the only tier-1 (hardware-photographed) judge found is
 Chris Covell's CPU timing test.
 
 ## Shape: base board plus add-ons (the Sega console pattern)
@@ -42,7 +42,7 @@ Geargrafx, ares, Mesen2, the TurboGrafx16 MiSTer core **with its `docs/`** (Huds
 research repos, HuC, the 240p Test Suite source, ...):
 
 ```sh
-python -I scripts/fetch_references.py            # everything missing (~130 MB)
+python -I scripts/fetch_references.py            # everything missing (~100 MB before building the cores)
 python -I scripts/fetch_references.py --verify   # check what is present
 ```
 
