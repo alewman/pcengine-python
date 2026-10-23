@@ -99,7 +99,7 @@
    "/docs/"
   ],
   "license": "GPL-2.0+ (read and cite only; never copy)",
-  "note": "TurboGrafx16 MiSTer FPGA core: rtl/ is a reconstruction, not a die model (detector); docs/ is the best single document set found: Hudson's HuC6270/HuC6260/HuC6280/PSG manuals, CD Unit schematic, Hu7 CD System BIOS/Software manuals, Super CD-ROM2 System V3.00 (J) assembly listing, the TG-16 service manual, MacDonald's pcetech/sgxtech, vdcdox.txt"
+  "note": "TurboGrafx16 MiSTer FPGA core: rtl/ is a reconstruction, not a die model (detector); docs/ is the best single document set found. Provenance per file, read from the PDFs' metadata and headers (2026-10-23): HuC6270/HuC6260/HuC6280 hardware+software/PSG manuals and 'Hu7 CD System' BIOS/Software/PSG-driver manuals are scans of Hudson documents (Acrobat OCR, 2017): manufacturer tier, OCR quality poor; turbografx-16 unit service manual: NEC scan (2014); 'CD Unit SCH.pdf' is an Altium Designer redraw dated 2020-06 titled 'New Output': a community reverse-engineered schematic, NOT NEC's (research tier); 'Super CD-ROM2 System V3.00 (J).ASM' is a commented disassembly of the System Card ROM (community, derived from the BIOS image: do not copy); vdcdox.txt is Schleussinger 1998; pcetech/sgxtech are MacDonald's; 'logs 42.95MHz/*.png' are FPGA-core signal captures (H_CNT/V_CNT are internal counters): emulator-derived tier"
  },
  {
   "path": "reference/src/pce-controller-info",

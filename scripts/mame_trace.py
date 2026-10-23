@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record MAME 0.285's per-instruction HuC6280 trace and hardware-page access log for a HuCard.
+"""Record MAME 0.285's per-instruction HuC6280 trace for a HuCard.
 
 Runs the recipe in docs/mame-oracle.md in a fresh directory (default
 ``tests/mame_traces/<driver>-<card stem>``, gitignored) and leaves ``error.log``
@@ -16,16 +16,18 @@ is extracted into the run directory with ``7z``; nothing is written elsewhere.
 
 - ``C PC A X Y S P totalcycles beamy beamx frame MPR1 MPR2 MPR3 MPR4``: one line per
   instruction, before it executes (hex, then decimal). PC is the 16-bit logical
-  address; ``totalcycles`` counts the CPU's cycles at the CPU clock (MAME's
-  ``h6280`` device is clocked at 21.477272 MHz / 3), not master clocks.
+  address; ``totalcycles`` counts ticks of the 7.159 MHz clock (the ``h6280`` device is
+  clocked at 21.477272 MHz / 3): a high-speed cycle is 1 tick and a low-speed
+  (1.79 MHz) cycle is 4, measured: SEI at reset = 8 ticks, 2 low-speed cycles.
   A ``logerror`` action silently drops values past 14 (found on the Z80 boards);
   the C line has 14, so MPR0 (always $FF after reset) and MPR5-MPR7 are omitted:
   rerun with ``--mprs`` to log MPR0-MPR7 instead of the clock fields;
-- ``R addr value cycles`` / ``W addr value cycles``: every CPU access to the
-  hardware page (physical ``$1FE000-$1FFFFF``: VDC, VCE, PSG, timer, I/O, IRQ,
-  CD interface), stamped with the cycle count when the watchpoint fired
-  (the access, not the instruction start);
-- MAME's own ``unmapped program memory`` complaints.
+- nothing else: **there is no hardware-page access log.** ``wpset`` ranges are
+  *logical* addresses on this CPU (``wpset 1fe000,2000`` fired on every ROM
+  fetch at $E000-$FFFF and logged the physical address, 2,072,408 lines in 1 s)
+  and Lua ``install_read_tap``/``install_write_tap`` on the 21-bit program space
+  logged nothing for the hardware page (measured 2026-10-23; docs/mame-oracle.md).
+  Register-access order must be recovered from the instruction trace.
 """
 
 from __future__ import annotations
@@ -54,8 +56,6 @@ local dbg = manager.machine.debugger
 dbg.visible_cpu = manager.machine.devices[":maincpu"]
 dbg:command('trace cpu.trace,:maincpu,noloop,{{logerror "C %X %X %X %X %X %X {tail}\\\\n",\
 pc,a,x,y,s,p,{tailargs}}}')
-dbg:command('wpset 1fe000,2000,r,1,{{logerror "R %X %X %d\\\\n",wpaddr,wpdata,totalcycles; g}}')
-dbg:command('wpset 1fe000,2000,w,1,{{logerror "W %X %X %d\\\\n",wpaddr,wpdata,totalcycles; g}}')
 dbg:command("go")
 """
 CLOCK = ("%d %d %d %d %X %X %X %X", "totalcycles,beamy,beamx,frame,mpr1,mpr2,mpr3,mpr4")
@@ -128,10 +128,7 @@ def main() -> int:
         f"MAME {version}, {args.driver}, {args.seconds} s emulated in {wall:.1f} s: {out / 'error.log'}"
     )
     if not args.no_trace:
-        print(
-            f"  {counts[b'C']:,} instructions, {counts[b'R']:,} hardware-page reads, "
-            f"{counts[b'W']:,} writes"
-        )
+        print(f"  {counts[b'C']:,} instructions")
     return 0
 
 
