@@ -79,5 +79,32 @@
   "kind": "live-document",
   "license": "PCEdev Wiki (pce.nesdev.org), MediaWiki raw page; licence not stated (UNVERIFIED)",
   "note": "PCEdev Wiki page 'VDC_pinout' (raw wikitext, 2026-10-23); small community wiki. "
+ },
+ {
+  "path": "reference/docs/sgxtech.txt",
+  "url": "https://web.archive.org/web/2016id_/http://cgfm2.emuviews.com/txt/sgxtech.txt",
+  "sha256": "1c56a719cc5c8ef32c34c7547ffef16d45e52788f5ca63ab46b5042026111155",
+  "size": 19765,
+  "kind": "document",
+  "license": "Charles MacDonald, copyright 2003-2004 (freely distributed; UNVERIFIED licence)",
+  "note": "MacDonald's NEC SuperGrafx hardware notes (tested on a SuperGrafx console by the author; Wayback copy)"
+ },
+ {
+  "path": "tests/test_roms/CPU_Test.zip",
+  "url": "http://www.chrismcovell.com/data/CPU_Test.zip",
+  "sha256": "db65a32d8832663f606afbcedcba3c62e84a28e53001a38bfb4e9bd6c937b625",
+  "size": 1233343,
+  "kind": "test-rom",
+  "license": "Chris Covell (freely distributed; UNVERIFIED)",
+  "note": "Chris Covell's PC-Engine CPU Timing Test: a visual raster test with photographs of the real PC Engine (8M flash card) and MiSTer results in the zip; hardware-captured tier for CPU-vs-VDC/VCE timing"
+ },
+ {
+  "path": "reference/docs/covell-cpu-test.html",
+  "url": "https://www.chrismcovell.com/CPUTest/",
+  "sha256": "65ccaf65a6cb697aa1581bd1b3d18af159e64bb8b3a32615a282bf10ff56f3a0",
+  "size": 14543,
+  "kind": "document",
+  "license": "Chris Covell (UNVERIFIED)",
+  "note": "Covell's explanation page for the CPU timing test"
  }
 ]

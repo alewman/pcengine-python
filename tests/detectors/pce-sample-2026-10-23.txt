@@ -1,0 +1,35 @@
+ma-me tv 0.01 rows 1.00 off +24; ma-be tv 0.02 rows 1.00 off +24; me-be tv 0.02 rows 1.00 off +24  1941 - Counter Attack (Japan).7z
+ma-me tv 0.00 rows 1.00 off +24; ma-be tv 0.00 rows 1.00 off +24; me-be tv 0.00 rows 1.00 off +24  Aldynes - The Misson Code for Rage Crisis (Japan) (En).7z
+ma-me tv 0.01 rows 0.91 off +24; ma-be tv 0.01 rows 0.95 off +5; me-be tv 0.02 rows 0.85 off +24  Battle Ace (Japan) (En).7z
+ma-me tv 0.01 rows 1.00 off +24; ma-be tv 0.04 rows 0.95 off +24; me-be tv 0.04 rows 0.95 off +24  Daimakaimura (Japan) (En).7z
+ma-me tv 0.06 rows 0.90 off +5; ma-be tv 0.05 rows 0.94 off +5; me-be tv 0.11 rows 0.84 off +0  Madou King Granzort (Japan) (En).7z
+ma-me tv 0.01 rows 1.00 off +24; ma-be tv 0.02 rows 1.00 off +24; me-be tv 0.03 rows 1.00 off +24  Aero Blasters (USA).7z
+ma-me tv 0.03 rows 0.99 off +5; ma-be tv 0.03 rows 0.99 off +5; me-be tv 0.04 rows 0.99 off +0  Atomic Robo-Kid Special (Japan) (En).7z
+ma-me tv 0.49 rows 0.98 off +24; ma-be tv 0.56 rows 0.76 off +24; me-be tv 0.07 rows 0.76 off +22  Barbarian (World) (ZX Spectrum) (Aftermarket) (Unl).7z
+ma-me tv 0.01 rows 1.00 off +24; ma-be tv 0.00 rows 1.00 off +24; me-be tv 0.01 rows 1.00 off +24  Bloody Wolf (USA).7z
+ma-me tv 0.06 rows 1.00 off +5; ma-be tv 0.06 rows 1.00 off +5; me-be tv 0.12 rows 1.00 off +0  Bonk's Revenge (USA).7z
+ma-me tv 0.01 rows 1.00 off +24; ma-be tv 0.01 rows 1.00 off +24; me-be tv 0.02 rows 1.00 off +24  Champion Wrestler (Japan) (En).7z
+ma-me tv 0.05 rows 1.00 off +24; ma-be tv 0.06 rows 1.00 off +24; me-be tv 0.01 rows 1.00 off +24  Crash (World) (v1.01) (Aftermarket) (Unl).7z
+ma-me tv 0.02 rows 0.97 off +5; ma-be tv 0.02 rows 0.98 off +5; me-be tv 0.04 rows 0.95 off +0  Darius Alpha (Japan) (En) (SG Enhanced).7z
+ma-me tv 0.16 rows 0.94 off +24; ma-be tv 0.18 rows 0.87 off +24; me-be tv 0.02 rows 0.91 off +0  Death Sword (World) (PC) (Aftermarket) (Unl).7z
+ma-me tv 0.07 rows 1.00 off +24; ma-be tv 0.06 rows 1.00 off +24; me-be tv 0.12 rows 1.00 off +24  Dragon Spirit (USA).7z
+ma-me tv 0.07 rows 1.00 off +5; ma-be tv 0.06 rows 1.00 off +5; me-be tv 0.12 rows 1.00 off +0  Falcon (USA).7z
+ma-me tv 0.00 rows 1.00 off +24; ma-be tv 0.00 rows 1.00 off +24; me-be tv 0.00 rows 1.00 off +24  Formation Soccer - Human Cup '90 (Japan) (En).7z
+ma-me tv 0.05 rows 0.93 off +5; ma-be tv 0.02 rows 0.92 off +5; me-be tv 0.07 rows 0.85 off +0  Gunboat (USA).7z
+ma-me tv 0.06 rows 1.00 off +24; ma-be tv 0.06 rows 1.00 off +24; me-be tv 0.01 rows 1.00 off +24  Humpball (World) (Aftermarket) (Unl).7z
+ma-me tv 0.07 rows 0.97 off +5; ma-be tv 0.05 rows 1.00 off +5; me-be tv 0.12 rows 0.97 off +0  Jackie Chan (Japan).7z
+ma-me tv 0.07 rows 0.96 off +5; ma-be tv 0.06 rows 0.99 off +5; me-be tv 0.12 rows 0.96 off +0  Kyuukyoku Tiger (Japan) (En).7z
+ma-me tv 0.04 rows 0.95 off +6; ma-be tv 0.05 rows 0.88 off +5; me-be tv 0.08 rows 0.83 off +0  Mai Nurse (World) (Aftermarket) (Unl).7z
+ma-me tv 0.05 rows 1.00 off +5; ma-be tv 0.06 rows 1.00 off +5; me-be tv 0.10 rows 1.00 off +0  Moto Roader (USA).7z
+ma-me tv 0.00 rows 1.00 off +24; ma-be tv 0.00 rows 1.00 off +24; me-be tv 0.00 rows 1.00 off +24  NewZealand Story, The (Japan) (En).7z
+ma-me tv 0.07 rows 0.99 off +5; ma-be tv 0.06 rows 1.00 off +5; me-be tv 0.12 rows 0.99 off +0  OutRun (Japan) (En).7z
+ma-me tv 0.00 rows 1.00 off +24; ma-be tv 0.00 rows 1.00 off +24; me-be tv 0.00 rows 1.00 off +24  Populous (Japan) (En).7z
+ma-me tv 0.01 rows 0.99 off +24; ma-be tv 0.01 rows 1.00 off +5; me-be tv 0.02 rows 0.99 off +24  R-Type (USA).7z
+ma-me tv 0.06 rows 0.63 off +5; ma-be tv 0.06 rows 0.68 off +5; me-be tv 0.11 rows 0.29 off +0  Samurai-Ghost (USA).7z
+ma-me tv 0.03 rows 1.00 off +24; ma-be tv 0.04 rows 0.99 off +24; me-be tv 0.01 rows 0.99 off +24  Sinistron (USA).7z
+ma-me tv 0.07 rows 1.00 off +5; ma-be tv 0.06 rows 1.00 off +5; me-be tv 0.12 rows 1.00 off +0  Spin Pair (Japan) (En).7z
+ma-me tv 0.01 rows 0.99 off +6; ma-be tv 0.03 rows 0.99 off +5; me-be tv 0.03 rows 0.99 off +24  TV Sports Basketball (USA).7z
+ma-me tv 0.01 rows 1.00 off +24; ma-be tv 0.01 rows 1.00 off +24; me-be tv 0.02 rows 1.00 off +24  Tenseiryuu - Saint Dragon (Japan) (En).7z
+ma-me tv 0.01 rows 0.99 off +0; ma-be tv 0.03 rows 1.00 off +7; me-be tv 0.03 rows 0.99 off +7  Titan (Japan) (En).7z
+ma-me tv 0.07 rows 1.00 off +5; ma-be tv 0.06 rows 1.00 off +5; me-be tv 0.12 rows 1.00 off +0  Valkyrie no Densetsu (Japan).7z
+ma-me tv 0.07 rows 1.00 off +5; ma-be tv 0.08 rows 1.00 off +5; me-be tv 0.12 rows 1.00 off +0  World Class Baseball (USA).7z

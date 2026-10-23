@@ -52,7 +52,8 @@
    "/LICENSE",
    "/README.md",
    "/src/",
-   "/platforms/libretro/"
+   "/platforms/libretro/",
+   "/platforms/shared/"
   ],
   "license": "GPL-3.0 (read and cite only; never copy)",
   "note": "Geargrafx (drhelius): PCE/SGX/CD emulator with a debugger; readable independent core. Detector"
@@ -94,10 +95,11 @@
   "date": "2026-07-10T00:11:30+08:00",
   "sparse": [
    "/README.md",
-   "/rtl/"
+   "/rtl/",
+   "/docs/"
   ],
   "license": "GPL-2.0+ (read and cite only; never copy)",
-  "note": "TurboGrafx16 MiSTer FPGA core (rtl/): a reconstruction, not a die model; shows what an FPGA needed for hardware-matching timing. Detector"
+  "note": "TurboGrafx16 MiSTer FPGA core: rtl/ is a reconstruction, not a die model (detector); docs/ is the best single document set found: Hudson's HuC6270/HuC6260/HuC6280/PSG manuals, CD Unit schematic, Hu7 CD System BIOS/Software manuals, Super CD-ROM2 System V3.00 (J) assembly listing, the TG-16 service manual, MacDonald's pcetech/sgxtech, vdcdox.txt"
  },
  {
   "path": "reference/src/pce-controller-info",

@@ -40,7 +40,9 @@ REPOS = ROOT / "scripts" / "pinned_repos.json"
 LIVE = {"live-document"}
 USER_AGENT = "Mozilla/5.0 (pcengine-python reference fetch)"
 # Where each archive is unpacked, relative to the archive's directory.
-UNPACK: dict[str, str] = {}
+UNPACK: dict[str, str] = {
+    "CPU_Test.zip": "CPU_Test",
+}
 
 
 def sha256(path: Path) -> str:
