@@ -71,7 +71,7 @@ class MultiTap:
     resets on a CLR 0 -> 1 transition with SEL high; after the fifth it answers $0 until reset;
     an empty port answers $F.
 
-    C12: pcetech says that right after the reset write ($03: SEL and CLR high) D3-D0 already
+    C10: pcetech says that right after the reset write ($03: SEL and CLR high) D3-D0 already
     show pad 1's directions; the pce-devel table puts CLR high on every port at that moment,
     which would read 0. `clr_high_reads_pad` selects pcetech's reading (tier 2, the default).
     """

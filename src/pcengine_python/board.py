@@ -5,7 +5,7 @@ The CPU core (huc6280-python) calls `read_byte`, `write_byte` and `idle` once pe
 speed (`cpu.high_speed`), plus the VDC/VCE stretch and any `hold`, all inside the callback; it
 never adds `step()`'s return on top (docs/handoff-brief.md, the bus contract).
 
-Where inside a cycle a device sees the access is U23 (provisional): the base cycle elapses, then
+Where inside a cycle a device sees the access is U21 (provisional): the base cycle elapses, then
 the access happens at that instant, then the stretch cycle for a VDC or VCE address elapses.
 Covell's CPU test (tier 1) will place it.
 """
@@ -21,6 +21,8 @@ from pcengine_python.machine import (
     CPU_CLOCKS_HIGH,
     CPU_CLOCKS_LOW,
     HARDWARE_FIRST_PAGE,
+    HSYNC_CLOCKS,
+    LINE_CLOCKS,
     PC_ENGINE,
     Machine,
 )
@@ -61,6 +63,8 @@ class Board:
         self.cpu = None  # set by attach_cpu
         self._held = 0
         self._lines = (False, False, False)
+        self._row_end: int | None = None
+        self._row_timing = None  # VideoTiming of the line whose row is still being drawn
 
         self.irq2 = IrqLine("IRQ2")
         self.vce = Vce(power_on=rng)
@@ -156,9 +160,12 @@ class Board:
         tl, vdc, io = self.timeline, self.vdc, self.cpu_io
         while True:
             line_at = tl.next_line_start
+            row_at = self._row_end
             vdc_at = vdc.next_event()
             timer_at = io.next_event()
-            if line_at <= target and (vdc_at is None or line_at <= vdc_at):
+            if row_at is not None and row_at <= target and row_at <= line_at:
+                self._end_row(row_at)
+            elif line_at <= target and (vdc_at is None or line_at <= vdc_at):
                 self._new_line(line_at)
             elif vdc_at is not None and vdc_at <= target:
                 vdc.catch_up(vdc_at)
@@ -172,12 +179,20 @@ class Board:
     def _new_line(self, at: int) -> None:
         tl, vdc = self.timeline, self.vdc
         vdc.catch_up(at)
-        timing = tl.timing()
-        self.capture.finish_line(timing, [vdc.pixel_row(1365 // timing.dot_divider)])
+        self._row_timing = tl.timing()  # the line that is ending; its row ends 237 clocks later
+        self._row_end = at + HSYNC_CLOCKS
         tl.advance()
         vdc.hsync(at, self.vce.dot_divider)
         if tl.line == tl.frame_lines - 3:
             vdc.vsync()  # [emu: Mednafen] after the hsync of the same line
+
+    def _end_row(self, at: int) -> None:
+        """The previous line's picture row ends as this line's sync does: hand it to the capture
+        before the VDC starts the new line's geometry (events at `at` itself wait)."""
+        self.vdc.catch_up(at - 1)
+        timing = self._row_timing
+        self.capture.finish_line(timing, [self.vdc.pixel_row(LINE_CLOCKS // timing.dot_divider)])
+        self._row_end = None
 
     # -- interrupts ---------------------------------------------------------------------------
 

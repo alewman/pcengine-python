@@ -114,7 +114,7 @@ def test_multitap_clr_high_after_reset_shows_pad_one_per_pcetech():
     tap, ports = make_tap()
     tap.write(True, False)
     tap.write(True, True)  # $03
-    assert tap.read(True, True) == ports[0].read(True, False)  # C12: pcetech's reading
+    assert tap.read(True, True) == ports[0].read(True, False)  # C10: pcetech's reading
 
 
 def test_multitap_c12_alternative_reads_zero_with_clr_high():

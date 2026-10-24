@@ -79,7 +79,7 @@ def test_direct_path_is_vdc_one_straight_into_the_vce():
 def test_a_replacement_pixel_path_sees_every_line():
     path = FakePixelPath()
     board = Board(pixel_path=path)
-    board.advance(LINE_CLOCKS * 10)
+    board.advance(LINE_CLOCKS * 10 + 237)  # ten rows have ended
     assert path.lines_seen == 10
 
 
@@ -109,7 +109,7 @@ def test_video_timing_record_per_line_has_the_dot_divider():
 
     board = Board(pixel_path=Spy())
     board.vce.write(0, 0x01, 0)  # 7 MHz
-    board.advance(LINE_CLOCKS * 3)
+    board.advance(LINE_CLOCKS * 3 + 237)
     assert [t.line for t in seen] == [0, 1, 2]
     assert {t.dot_divider for t in seen[1:]} == {3}
     assert seen[2].start_mclk == 2 * LINE_CLOCKS

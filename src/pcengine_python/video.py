@@ -18,6 +18,7 @@ from pcengine_python.machine import (
     ACTIVE_LINES,
     FRAME_LINES_LONG,
     FRAME_LINES_SHORT,
+    HSYNC_CLOCKS,
     LINE_CLOCKS,
     TOP_BLANK_LINES,
     VSYNC_LINES,
@@ -95,9 +96,15 @@ class Capture:
         self.last_frame: Frame | None = None
 
     def finish_line(self, timing: VideoTiming, vdc_rows: list[list[int]]) -> None:
-        """Called once a line has ended, before the next line's sync."""
+        """Called once the row of a line has ended.
+
+        [emu: Mednafen vce.cpp] A row is the 1365 master clocks from the end of the line's
+        horizontal sync to the end of the next line's: dot 0 is the first dot after the sync, so
+        a 256-wide picture (HDS 2) starts at dot 32 and fits in the row. This is the same
+        raster as `timing.start_mclk`, shifted by `HSYNC_CLOCKS`."""
         row = self.path.mix(timing, vdc_rows)
-        end = timing.start_mclk + LINE_CLOCKS
+        first = timing.start_mclk + HSYNC_CLOCKS
+        end = first + LINE_CLOCKS
         div = timing.dot_divider
         log = self._vce.palette_log
         used = 0
@@ -107,7 +114,7 @@ class Capture:
         pending = 0
         shadow = self._shadow
         for x, pixel in enumerate(row):
-            when = timing.start_mclk + x * div
+            when = first + x * div
             while pending < used and log[pending][0] <= when:
                 shadow[log[pending][1]] = log[pending][2]
                 pending += 1

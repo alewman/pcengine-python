@@ -24,6 +24,7 @@ import random
 from array import array
 from collections.abc import Callable
 
+from pcengine_python.machine import HSYNC_CLOCKS
 from pcengine_python.vdc import regs as r
 from pcengine_python.vdc.sequencer import Sequencer, VPhase
 
@@ -223,8 +224,9 @@ class Vdc:
         seq = self.seq
         row = [0x100] * dots
         if seq.display_line and seq.cr_cache & 0xC0:
-            first = (seq.active_start - seq.origin) // seq.divider
-            last = (seq.active_end - seq.origin) // seq.divider
+            row_start = seq.origin + HSYNC_CLOCKS  # dot 0 of a row: the end of the line's sync
+            first = (seq.active_start - row_start) // seq.divider
+            last = (seq.active_end - row_start) // seq.divider
             for x in range(max(first, 0), min(last, dots)):
                 row[x] = 0x000
         return row
