@@ -11,10 +11,12 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "alewman" }]
-# The CPU core is huc6280-python, pinned by git commit once its rung 1 passes
-# (docs/handoff-brief.md, "What the board needs from huc6280-python"). Until that
-# commit exists nothing here imports it: the board is driven by test fakes.
-dependencies = []
+# The CPU core, huc6280-python, pinned by git commit (a local repository until it is public):
+# 143eb29 = rungs 0-5 and tooling done, MAME-replayed 21.0M instructions with 0 register
+# divergences. Repin deliberately and rerun the gate (docs/m1-record.md).
+dependencies = [
+    "huc6280-python @ git+file:///data/emu/huc6280-python@143eb298462a9790da56d51526f8f73d28d0f0cb",
+]
 
 [project.optional-dependencies]
 dev = [

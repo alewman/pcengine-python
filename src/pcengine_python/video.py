@@ -29,9 +29,12 @@ from pcengine_python.vce import Vce
 
 
 class Timeline:
-    def __init__(self, machine: Machine, vce: Vce, start_line: int = 0) -> None:
+    def __init__(
+        self, machine: Machine, vce: Vce, start_line: int = 0, start_offset: int = 0
+    ) -> None:
         """Time zero is the start of line `start_line` of frame 0 (U1: the power-up phase of the
-        raster against the CPU is not published; MAME's CPU test trace starts at line 260)."""
+        raster against the CPU is not published; MAME's CPU test trace starts at line 260).
+        `start_offset` puts time zero that many master clocks *into* the line instead."""
         self._machine = machine
         self._vce = vce
         self.frame = 0
@@ -39,7 +42,7 @@ class Timeline:
         if not 0 <= start_line < self.frame_lines:
             raise ValueError(f"start_line {start_line} outside the {self.frame_lines}-line frame")
         self.line = start_line
-        self.line_start = 0
+        self.line_start = -start_offset
 
     def _lines_for_frame(self) -> int:
         # C3: sampled where the frame starts, as Mednafen samples it where the vsync ends.

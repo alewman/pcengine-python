@@ -40,8 +40,10 @@ def test_package_imports_only_what_its_boundary_allows(package):
             )
 
 
-def test_nothing_in_the_chip_packages_imports_the_cpu_core():
+def test_only_system_imports_the_cpu_core():
     for path in SRC.rglob("*.py"):
+        if path.name == "system.py":
+            continue
         for name in imports_of(path):
             assert not name.startswith("huc6280"), f"{path} imports {name}"
 

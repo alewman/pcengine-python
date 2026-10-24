@@ -54,6 +54,7 @@ class Board:
         pixel_path: PixelPath | None = None,
         power_on_seed: int | None = None,
         start_line: int = 0,
+        start_offset: int = 0,
     ) -> None:
         """`power_on_seed=None` powers up with zeros (U7, deterministic); a seed randomises RAM,
         VRAM, the sprite table and the colour table reproducibly. `start_line` is the raster line
@@ -65,7 +66,7 @@ class Board:
         self.cpu = None  # set by attach_cpu
         self._held = 0
         self._lines = (False, False, False)
-        self._row_end: int | None = None
+        self._row_end: int | None = None  # set by the first new line
         self._row_timing = None  # VideoTiming of the line whose row is still being drawn
 
         self.irq2 = IrqLine("IRQ2")
@@ -86,7 +87,7 @@ class Board:
         self.port = port
         self.audio_sources = [self.psg]
 
-        self.timeline = Timeline(machine, self.vce, start_line)
+        self.timeline = Timeline(machine, self.vce, start_line, start_offset)
         self.capture = Capture(self.vce, pixel_path)
 
         self.pages = PageTable()
@@ -101,8 +102,8 @@ class Board:
                 for first, last in device.claims():
                     self.pages.claim(first, last, device)
 
-        self.vdc.hsync(0, self.vce.dot_divider)
-        if self.timeline.line == self.timeline.frame_lines - 3:
+        self.vdc.hsync(self.timeline.line_start, self.vce.dot_divider)
+        if self.timeline.line >= self.timeline.frame_lines - 3:
             self.vdc.vsync()
 
     # -- the CPU ------------------------------------------------------------------------------
