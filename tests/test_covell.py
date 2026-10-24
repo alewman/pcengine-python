@@ -13,6 +13,7 @@ import statistics
 from pathlib import Path
 
 import pytest
+
 from pcengine_python import pads
 from pcengine_python.board import Board
 from pcengine_python.cards import RomCard
