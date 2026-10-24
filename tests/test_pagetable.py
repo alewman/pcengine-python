@@ -1,7 +1,7 @@
 import pytest
-from pcengine_python.pagetable import PageTable, Ram, Unmapped
-
 from fake_devices import FakeCard
+
+from pcengine_python.pagetable import PageTable, Ram, Unmapped
 
 
 def test_unmapped_reads_ff_and_ignores_writes():
