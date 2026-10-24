@@ -186,3 +186,16 @@ def test_power_up_vram_zero_by_default_random_on_request():
     a, b = Vdc(power_on=random.Random(3)), Vdc(power_on=random.Random(3))
     assert a.vram == b.vram
     assert any(a.vram)
+
+
+def test_busy_is_not_cleared_by_a_status_read_and_never_raises_irq1():
+    """[mfr: HuC6270 manual 2.1.3] the status register clears on read except BSY, and 'even if
+    BSY is set, no interrupt request will occur'."""
+    from pcengine_python.vdc import regs as regs_
+
+    vdc = Vdc()
+    vdc._pending_write = (0, 1)
+    vdc._commit_at = 10**9
+    assert vdc.read(0, 0) == regs_.BSY
+    assert vdc.read(0, 0) == regs_.BSY
+    assert not vdc.irq1

@@ -230,3 +230,20 @@ def test_io_port_mirrors_across_the_whole_1000_13ff_block():
     io, _ = make_io(pad=pad)
     io.write(0x13FF, 0x03, 0)
     assert pad.writes == [(True, True)]
+
+
+def test_output_port_powers_up_high_so_sel_and_clr_start_set():
+    """[mfr: HuC6280 manual 2.5] a system reset drives the output port high."""
+    pad = FakeController(0x07)
+    io, _ = make_io(pad=pad)
+    assert io.port.sel and io.port.clr
+    io.write(0x1000, 0x00, 0)
+    assert not io.port.sel and not io.port.clr
+    io.reset()
+    assert io.port.latch == 0xFF
+
+
+def test_output_port_keeps_the_upper_bits_for_the_supergrafx_s_exp_port():
+    io, _ = make_io()
+    io.write(0x1000, 0xFC, 0)
+    assert io.port.latch == 0xFC and not io.port.sel

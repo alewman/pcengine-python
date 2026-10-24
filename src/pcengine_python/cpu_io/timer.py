@@ -5,11 +5,14 @@
 asserted when the counter goes from 0 to $7F; at that moment it is reloaded from the latch and
 keeps counting, whether or not the interrupt has been acknowledged.
 
-Provisional, emu tier 5 (U24): the phase of the 1024-cycle prescaler. pcetech does not say; MAME
-and Mednafen both restart it when the timer goes from disabled to enabled, so a tick is
-3072 master clocks after the enabling write. Mednafen reloads one master clock after the
-underflow; MAME at the underflow; this model reloads at the underflow (pcetech: "reloaded
-when it occurs").
+[mfr: HuC6280 hardware manual 2.7] "When 0 is written in the Timer Start/Stop flag, the timer
+stops and the prescaler is reset", and the down-counter is loaded from the reload register
+when the flag goes from 0 to 1: so the prescaler's phase is the enabling write (tier 3). Not
+published (U24, provisional, emu tier 5): the exact delay from that write to the first tick;
+MAME and Mednafen both use one full period (3072 master clocks), as here. Mednafen reloads one
+master clock after the underflow, MAME at the underflow; this model reloads at the underflow
+(pcetech: "reloaded when it occurs"). The manual also cautions that the count can read invalid
+while it changes; that is not modelled.
 """
 
 from __future__ import annotations
