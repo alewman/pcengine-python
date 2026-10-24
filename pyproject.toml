@@ -1,10 +1,53 @@
-# Tooling only for now: there is no package yet (see docs/handoff-brief.md).
-# The floor is the newest Python PyPy supports (3.11); scripts need Pillow
-# (mame_screens.py, detectors_compare.py) and the system's mame, 7z and chdman.
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pcengine-python"
+version = "0.1.0.dev0"
+description = "Readable, pure-Python PC Engine / TurboGrafx-16 board with documented sockets for add-ons"
+readme = "README.md"
+# The floor is the newest Python PyPy supports (3.11 as of PyPy 7.3.20); raise it when PyPy does.
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "alewman" }]
+# The CPU core is huc6280-python, pinned by git commit once its rung 1 passes
+# (docs/handoff-brief.md, "What the board needs from huc6280-python"). Until that
+# commit exists nothing here imports it: the board is driven by test fakes.
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    # Pinned: `ruff format --check` must see the formatter the tree was formatted with.
+    "ruff==0.16.8",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pcengine_python"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"
 extend-exclude = ["reference", "tests/test_roms", "tests/mame_traces", "tests/runs"]
 
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B", "C4", "SIM", "PERF", "RUF"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pcengine_python"]
+
 [tool.ruff.lint.per-file-ignores]
 "scripts/*" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers -ra -m 'not slow'"
+pythonpath = ["src", "tests"]
+markers = [
+    "slow: runs a test ROM or an oracle for many emulated seconds (pytest -m slow)",
+    "needs_cpu: needs huc6280-python, pinned in pyproject once its rung 1 passes",
+]
