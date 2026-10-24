@@ -199,3 +199,24 @@ hardware unless noted):
 - ares and Mednafen proper were not built; Geargrafx and Mesen2 were run only on a few ROMs.
 - MAME's per-register access log could not be made to work (mame-oracle.md trap 1).
 - The three-way picture comparison is a crude statistic with a known colour-conversion artefact.
+
+## Decided by the user (Aubrey, 2026-10-23)
+
+All fourteen recommendations above were taken as written, with these three asked
+about specifically:
+
+- **Where the timer and IRQ controller live (item 4)**: the board, with
+  import-boundary tests, moved out (never copied) if a second consumer such as the
+  Data East arcade board is built. The MMU stays in the core, the PSG in the board.
+- **SuperGrafx (item 6)**: an add-on (`supergrafx-python`) pinning this board
+  through the `PixelPath` socket, with a measured fallback to a base-board mode if
+  the socket costs more than noise on the per-line path at M3.
+- **CD (items 5, 10)**: out of the first build (M1-M5 are HuCards). CD-ROM² and the
+  Arcade Card become one later add-on, `pcenginecd-python`; images are read as
+  bin/cue extracted by `chdman` into scratch, and a pure-Python CHD reader is
+  built only if single-file play is wanted.
+
+Also taken: bring-your-own BIOS read in place; the pin and repin pattern; local
+through M5 then public; the 9-bit pixel stream with a replaceable RGB table;
+building HuC/PCEAS only if a milestone needs a program the library lacks. The SF2
+card is read in place from the source tree (cartridge.md).
