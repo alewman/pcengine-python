@@ -49,16 +49,16 @@ class System:
             self.cpu.step()
 
 
-def make_core(board: Board) -> Cpu:
+def make_core(board: Board, cpu_class: type | None = None) -> Cpu:
     """The HuC6280 core (huc6280-python, pinned in pyproject) on this board's bus, with a reset
     requested: the first `step()` runs the start sequence and reads the reset vector."""
     from huc6280 import HuC6280
 
-    cpu = HuC6280(board.read_byte, board.write_byte, board.idle)
+    cpu = (cpu_class or HuC6280)(board.read_byte, board.write_byte, board.idle)
     cpu.request_reset()
     return cpu  # type: ignore[return-value]
 
 
-def build(board: Board) -> System:
-    """A board with the real core on it."""
-    return System(board, make_core)
+def build(board: Board, cpu_class: type | None = None) -> System:
+    """A board with the real core on it (`cpu_class`: a subclass of HuC6280, for experiments)."""
+    return System(board, lambda b: make_core(b, cpu_class))

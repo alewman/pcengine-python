@@ -1,0 +1,6 @@
+{
+  "source": "tests/test_roms/CPU_Test/images/8MROM_2..8.png (Chris Covell, CPU_Test.zip): photographs of a real PC Engine running CPU_Test_10.pce from ROM, one per instruction group (2- to 8-cycle). Tier 1, measured by scripts/covell_photo_splits.py.",
+  "method": "per scanline of the striped area, the column of the strongest colour step between x=28 and 62; median over 114 rows; converted to Mednafen screenshot columns by registering the photograph (355 px) to Mednafen's screenshot (280 px) on the heading text and the footer text: x_m = 20 + (x - 24.7) / 1.255. Our dot = x_m + 20 (Mednafen's ShowHorizOS crop). Photographic precision is about +-1.5 px, i.e. +-1.2 dots (+-1.6 CPU cycles at high speed).",
+  "groups_2_to_8_cycles_x_m": [30.6, 32.2, 33.8, 33.0, 33.0, 34.6, 33.4],
+  "mednafen_screenshots_x_m_ram_0001_0006": [57, 56, 57, 57, 59, 57]
+}

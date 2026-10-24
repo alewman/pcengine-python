@@ -47,8 +47,25 @@ HSW_DOTS = 8
 class Sequencer:
     """State and events only; the chip owns the registers and reacts through `chip`."""
 
-    def __init__(self, chip: _ChipSide) -> None:
+    def __init__(
+        self,
+        chip: _ChipSide,
+        vblank_dots: int | None = 0,
+        vertical_at_line_start: bool = False,
+    ) -> None:
+        """`vblank_dots`: the vblank flag test happens this many dots after the sync ends.
+
+        Default 0, the start of the line, as MAME has it (U19; provisional). None is Mednafen's:
+        the start of the display width, 32 dots on for HDS = 2. Covell's photographs (tier 1)
+        say Mednafen's is too late: its splits sit about 25 dots right of the hardware's in the
+        same screens, and 0 recovers about 18 of them (docs/m1-record.md); the rest, and a
+        whole line either way, the photographs cannot settle."""
         self.chip = chip
+        self.vblank_dots = vblank_dots
+        # Experiment (MAME's `huc6270.cpp`): the vertical phase counters step as each line
+        # *starts*, and the vblank flag is raised as the display period ends; Mednafen's (the
+        # default) step 4 dots before the end of each line's display width, almost a line later.
+        self.vertical_at_line_start = vertical_at_line_start
         # [emu: Mednafen Reset] power-up phase VDS with one line left; arbitrary but fixed (U1).
         self.vphase = VPhase.VDS
         self.vphase_counter = 1
@@ -82,6 +99,8 @@ class Sequencer:
             _, kind = self._events.pop(0)
             if kind == "leave":
                 self._leave_hsync()
+            elif kind == "vblank":
+                self._vblank()
             elif kind == "hds":
                 self._hds()
             elif kind == "hdw":
@@ -108,12 +127,17 @@ class Sequencer:
         self.active_start = self.hds_start + (hds + 1) * 8 * divider
         self.active_end = self.active_start + (hdw + 1) * 8 * divider
         self.final_at = self.active_end - FINAL_DOTS * divider
+        if self.vertical_at_line_start:
+            self._advance_vertical()
         # Stale events of the previous line are dropped, as Mednafen's HPhase is overwritten.
         self._events = [
             (self.hds_start, "hds"),
             (self.active_start, "hdw"),
             (self.final_at, "final"),
         ]
+        if self.vblank_dots is not None:
+            self._events.append((origin + HSYNC_CLOCKS + self.vblank_dots * divider, "vblank"))
+            self._events.sort(key=lambda e: e[0])
 
     def vsync(self) -> None:
         """The vertical sync starts (the last three lines of the VCE's frame).
@@ -147,10 +171,14 @@ class Sequencer:
     def _hdw(self) -> None:
         self.display_line = self.vphase == VPhase.VDW and not self.burst_mode
         self.need_rcr_inc = True
+        if self.vblank_dots is None and not self.vertical_at_line_start:
+            self._vblank()
+        self.chip.commit_pending()
+
+    def _vblank(self) -> None:
         if self.vphase != VPhase.VDW and self.need_vb_irq_test:
             self.need_vb_irq_test = False
             self.chip.vblank_test()
-        self.chip.commit_pending()
 
     def _final(self) -> None:
         if self.scanline_from_vsync == self.vsw + 1:
@@ -167,6 +195,11 @@ class Sequencer:
 
     def _inc_rcr(self) -> None:
         self.rcr_count += 1
+        if not self.vertical_at_line_start:
+            self._advance_vertical()
+        self.chip.raster_test(self.rcr_count)
+
+    def _advance_vertical(self) -> None:
         self.vphase_counter -= 1
         self.scanline_from_vsync += 1
         if self.vphase_counter <= 0:
@@ -179,11 +212,15 @@ class Sequencer:
                 self.need_vb_irq_test = True
             elif self.vphase == VPhase.VCR:
                 self.vphase_counter = self.vcr
+                if self.vertical_at_line_start and self.vblank_dots is None:
+                    self.need_vb_irq_test = False
+                    self.chip.vblank_test()
+                elif self.vertical_at_line_start:
+                    self.need_vb_irq_test = True  # raised by the "vblank" event, N dots on
             else:
                 self.vphase_counter = self.vsw + 1
                 self.scanline_from_vsync = 0
                 self._cache_vertical()
-        self.chip.raster_test(self.rcr_count)
 
 
 class _ChipSide(Protocol):

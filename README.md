@@ -11,7 +11,8 @@ for add-on boards.
 **Status (2026-10-24): Phase 0 documents (2026-10-23) and the first half of Milestone 1.** The sockets, page
 table, timer, interrupt controller, I/O port and pads, VCE, a VDC skeleton (VRAM port, status/IRQ,
 frame layout, raster compare), the ROM card and the board's one-timeline clocking are built and tested
-(CPython and PyPy); the Covell and MAME rungs wait on huc6280-python's rung 1. See
+(CPython and PyPy) and pinned to huc6280-python 143eb29; the Covell and MAME judges were run and **M1's
+exit does not hold yet**. See
 [docs/m1-record.md](docs/m1-record.md). The documents in [`docs/`](docs/README.md) hold what the build
 needs, every fact with its source and tier; [docs/handoff-brief.md](docs/handoff-brief.md) is the plan
 (8 milestones, 24 unknowns, 10 conflicts, 14 open decisions, all decided).

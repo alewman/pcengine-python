@@ -67,7 +67,8 @@ and `reference/src/geargrafx/platforms/libretro`).
 2. **Block-transfer reads of `$FF:0800-$1400` return 0 and do not update the I/O buffer; writes work**
    ([hw]). huc6280-python's brief puts this rule **in the core** (the CPU returns 0); the board only has
    to know whether the core still calls `read_byte` for those reads (it would load the buffer):
-   check at the first pin.
+   checked at the first pin: it does not (the core calls `idle`); its range stops at `$13FF`
+   ([m1-record.md](m1-record.md)).
 3. **`ST0/ST1/ST2` emit physical `$1FE000/2/3`** (not translated) ([hw]).
 4. **Speed state readable** (`high_speed`; power-up low) and the cycle in which `CSL/CSH` takes effect
    documented with its source; the board prices a cycle at 12 or 3 master clocks. **Unknown** whether

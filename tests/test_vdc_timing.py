@@ -73,7 +73,18 @@ def test_vblank_flag_rises_on_the_first_line_after_the_active_display():
     when = step_until(board, lambda: board.vdc.status & r.VD)
     line, offset = line_and_offset(board, when)
     assert line == 25 + 0xDF + 1  # 249: first line after VDW + 1 = 224 lines from line 25
-    # the documented formula: hsync 237, 8 dots, (HDS + 1) * 8 dots at 4 master clocks
+    # U19: the test happens as the sync ends (default 0 dots; Mednafen's is the display start)
+    assert abs(offset - 237) <= 4
+
+
+def test_mednafen_vblank_position_is_the_start_of_the_display_width():
+    board = Board(FIXED_263, vblank_dots=None)
+    cpu = ScriptedCpu(board, high_speed=True)
+    standard_display(cpu, cr=0x00C8 | 0x0004)
+    board.advance(LINE_CLOCKS * 263)
+    board.vdc.status = 0
+    when = step_until(board, lambda: board.vdc.status & r.VD)
+    _, offset = line_and_offset(board, when)
     assert abs(offset - (237 + 8 * 4 + 3 * 8 * 4)) <= 4
 
 

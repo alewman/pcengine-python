@@ -42,6 +42,8 @@ class Vdc:
         *,
         hold: Callable[[int], None] = lambda clocks: None,
         power_on: random.Random | None = None,
+        vblank_dots: int | None = 0,
+        vertical_at_line_start: bool = False,
     ) -> None:
         self.regs = r.VdcRegisters()
         self._hold = hold
@@ -53,7 +55,7 @@ class Vdc:
             self.vram = array("H", (power_on.getrandbits(16) for _ in range(VRAM_WORDS)))
             self.sat = array("H", (power_on.getrandbits(16) for _ in range(256)))
         self.status = 0
-        self.seq = Sequencer(self)
+        self.seq = Sequencer(self, vblank_dots, vertical_at_line_start)
         # A pending CPU VRAM access: ("w", address, word) or ("r", address, 0)
         self._pending_write: tuple[int, int] | None = None
         self._pending_read: int | None = None

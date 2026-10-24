@@ -55,6 +55,8 @@ class Board:
         power_on_seed: int | None = None,
         start_line: int = 0,
         start_offset: int = 0,
+        vblank_dots: int | None = 0,
+        vertical_at_line_start: bool = False,
     ) -> None:
         """`power_on_seed=None` powers up with zeros (U7, deterministic); a seed randomises RAM,
         VRAM, the sprite table and the colour table reproducibly. `start_line` is the raster line
@@ -71,7 +73,12 @@ class Board:
 
         self.irq2 = IrqLine("IRQ2")
         self.vce = Vce(power_on=rng)
-        self.vdc = Vdc(hold=self.hold, power_on=rng)
+        self.vdc = Vdc(
+            hold=self.hold,
+            power_on=rng,
+            vblank_dots=vblank_dots,
+            vertical_at_line_start=vertical_at_line_start,
+        )
         self.psg = Psg()
         self.cpu_io = CpuIo(
             self.psg,
