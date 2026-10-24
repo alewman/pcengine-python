@@ -8,10 +8,15 @@ the timer, interrupt controller and I/O port, the **HuC6270 VDC**, the **HuC6260
 six-channel wavetable **PSG**, the HuCard slot and its mappers, the pads, and **documented sockets**
 for add-on boards.
 
-**Status (2026-10-23): Phase 0, groundwork only, no emulator code.** The documents in
-[`docs/`](docs/README.md) hold what the build needs, every fact with its source and tier;
-[docs/handoff-brief.md](docs/handoff-brief.md) is the plan (8 milestones, 20 unknowns, 8 conflicts,
-14 open decisions). Measured while gathering: MAME 0.285, Mesen2 (famicom-python's headless build,
+**Status (2026-10-24): Phase 0 documents (2026-10-23) and the first half of Milestone 1.** The sockets, page
+table, timer, interrupt controller, I/O port and pads, VCE, a VDC skeleton (VRAM port, status/IRQ,
+frame layout, raster compare), the ROM card and the board's one-timeline clocking are built and tested
+(CPython and PyPy); the Covell and MAME rungs wait on huc6280-python's rung 1. See
+[docs/m1-record.md](docs/m1-record.md). The documents in [`docs/`](docs/README.md) hold what the build
+needs, every fact with its source and tier; [docs/handoff-brief.md](docs/handoff-brief.md) is the plan
+(8 milestones, 24 unknowns, 10 conflicts, 14 open decisions, all decided).
+
+Measured while gathering: MAME 0.285, Mesen2 (famicom-python's headless build,
 after setting the config the DLL lacks), Beetle PCE (Mednafen's core, built from the pinned tree) and
 Geargrafx all run here headless; 35 library cards start on all three of the first; the CD boots the
 Super System Card screen on three of them; the only tier-1 (hardware-photographed) judge found is

@@ -15,6 +15,7 @@ Read in this order.
 | [validation.md](validation.md) | Every oracle by tier with pins and provenance; what ran here; the detector comparison |
 | [mame-oracle.md](mame-oracle.md) | The verified MAME 0.285 recipe, output format, seven traps |
 | [handoff-brief.md](handoff-brief.md) | Decisions, the embedding contract for huc6280-python, 8 milestones with judges, U and C lists, 14 open decisions |
+| [m1-record.md](m1-record.md) | **Milestone 1 as built**: layout, judges and results, provisional items, what the data corrected, new U21-U24 and C9-C10 |
 
 ## Findings made while gathering (2026-10-23)
 

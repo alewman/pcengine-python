@@ -138,8 +138,11 @@ colour 0)**. Colour 0 of the other 15 palettes cannot be shown [hw].
 
 ## What the board must model, and at what grain
 
-- Per **character cycle (8 dots)** is the natural step: the CPU window, BAT/CG/sprite fetches, the
-  scroll latch and the raster compare all happen on that grid; a line is 42-85 such steps.
+- Per **character cycle (8 dots)** is the natural grid for the CPU window and the BAT/CG/sprite
+  fetches; **the line events are not on it** (M1 correction, [m1-record.md](m1-record.md)): the line
+  counter steps 4 dots before the end of the display width and the display starts 8 dots plus
+  `(HDS + 1) * 8` after the sync, so the board runs the VDC on a handful of dot-granular line events
+  and computes the fetch schedule inside them.
 - The first milestone with a VDC (M1) only needs timing, the status/IRQ lines and VRAM port; M2
   adds BAT/CG rendering; M3 sprites; **sprite and DMA timing details stay provisional (tier 4) until a
   tier 1-2 source is found** (they are marked undecidable without hardware, per the no-hardware rule).

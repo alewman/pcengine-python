@@ -50,8 +50,9 @@ and `reference/src/geargrafx/platforms/libretro`).
 
 - **NTSC-J PC Engine first**, TurboGrafx-16 as a machine-table row from day one (the I/O port's country
   bit; 93 of 179 library cards are US and will not run without it, measured).
-- **One timeline in master clocks**; the board owns it; **the VDC steps by 8-dot character cycle**, the
-  natural grid of its CPU window, fetches and raster compare ([vdc.md](vdc.md)); sprite and DMA timing
+- **One timeline in master clocks**; the board owns it; **the VDC runs on dot-granular line events**; the
+  8-dot character cycle is the grid of its CPU window and fetches, not of the raster compare
+  ([vdc.md](vdc.md), [m1-record.md](m1-record.md)); sprite and DMA timing
   stay provisional (tier 5) until a tier 1-2 source exists.
 - **Sockets defined first, with test-only fakes**, in M1, audited by the add-on Phase 0s before the
   base is tagged.
@@ -63,8 +64,10 @@ and `reference/src/geargrafx/platforms/libretro`).
 1. **One bus callback per CPU cycle, in order**, with the 21-bit physical address (after the MMU) and an
    **access kind**: opcode fetch, operand, data read/write, stack, vector, internal. The HuC6280 has **no
    dummy reads or writes** in read-modify-write ([hw: pcetech §2]); the core must not invent them.
-2. **A kind that marks block-transfer accesses**: reads of `$FF:0800-$1400` made by `TII/TDD/TIN/TIA/TAI`
-   return **0** and do not update the I/O buffer; writes work ([hw]). The board cannot tell otherwise.
+2. **Block-transfer reads of `$FF:0800-$1400` return 0 and do not update the I/O buffer; writes work**
+   ([hw]). huc6280-python's brief puts this rule **in the core** (the CPU returns 0); the board only has
+   to know whether the core still calls `read_byte` for those reads (it would load the buffer):
+   check at the first pin.
 3. **`ST0/ST1/ST2` emit physical `$1FE000/2/3`** (not translated) ([hw]).
 4. **Speed state readable** (`high_speed`; power-up low) and the cycle in which `CSL/CSH` takes effect
    documented with its source; the board prices a cycle at 12 or 3 master clocks. **Unknown** whether
@@ -129,6 +132,10 @@ hardware unless noted):
 | U18 | HuCard access times and mirroring of non-power-of-2 images (384K known only from emulators); boards of the 25 unlisted aftermarket images | emulators; running | by running |
 | U19 | IRQ sampling cycle, the dot of the vblank flag; Covell: Mednafen's VSync "triggers too late" | tier 1 photo, qualitative | M1 |
 | U20 | Block-transfer cycle counts with VRAM/IO targets | Covell X-cycle photos | M1, provisional |
+| U21 | Where inside a CPU cycle a device sees the access; where the VDC/VCE stretch cycle goes | Covell photographs (tier 1) | built as "base cycle, access, stretch"; to be placed by the photographs |
+| U22 | Dot positions of the VDC's line events (display start, vblank test, line-counter step) | emulators (tier 5) | Mednafen's, in master clocks |
+| U23 | Reads of the mirrored half of VRAM | pcetech: "sometimes corrupted" | return 0 |
+| U24 | Delay from the timer's enabling write to its first tick | the prescaler reset is tier 3 (HuC6280 manual 2.7); the delay is not published | one period (MAME, Mednafen) |
 
 **Conflicts** (sources disagree; C-number = the label used in the other documents):
 
@@ -142,6 +149,8 @@ hardware unless noted):
 | C6 | I/O port D7 polarity | pcetech §4: 1 = CD unit **not** attached; sgxtech: "bit 7 = 1 if a device is connected" | the same author twice; follow pcetech (the wiki's K7 text is silent); verify with the BIOS |
 | C7 | VRAM-VRAM DMA over an active period | Hudson manual: remainder is **not** transferred in the next blanking; MacDonald: halted and resumed | decide at M2 by the detectors; manual is tier 3, MacDonald tier 2 |
 | C8 | the VCE's modes | Hudson manual: ratios 4 and 3 only, no line bit; MacDonald and all emulators: a divide-by-2 (10 MHz) mode exists | the manual describes the original chip; follow MacDonald |
+| C9 | line-counter step pending at the vertical sync | Mednafen drops it; pcetech 5.1's 263-value RCR range needs it | take it (tier 2 over 5) |
+| C10 | multitap read with CLR high after the reset write | pcetech: pad 1's directions; pce-devel port table: 0 | pcetech's, switchable |
 
 ## Open decisions for Aubrey (each with my recommendation)
 

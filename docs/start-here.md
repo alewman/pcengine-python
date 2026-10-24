@@ -64,8 +64,8 @@ built on the same 6502-python frame, runs a NES at 0.89x real time on PyPy and 0
 the full PPU/APU, and does 5.4 M CPU cycles/s on PyPy (`famicom-python/docs/validation.md`). A PC Engine
 CPU in high speed makes 7.16 M cycles/s, so the **CPU alone is ~0.75x real time on PyPy and
 ~0.33x on CPython**, before the VDC (a line is 42-85 character cycles) and the PSG; expect the
-whole board around 0.2-0.5x on PyPy and 0.05-0.1x on CPython until the VDC steps by character cycle
-and not by dot. That is acceptable for a reference; the milestones are judged by traces, not by
+whole board around 0.2-0.5x on PyPy and 0.05-0.1x on CPython until the VDC runs on line events
+(a few per line) and not by dot. That is acceptable for a reference; the milestones are judged by traces, not by
 frames per second.
 
 ## Floors and rules (from Aubrey)
