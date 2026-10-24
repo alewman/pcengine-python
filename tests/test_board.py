@@ -307,3 +307,15 @@ def test_a_mode_with_no_cpu_slot_holds_the_second_access_to_the_end_of_the_displ
     cpu.write(HARDWARE_BASE + 3, 0x33)  # a second data access: the CPU is held (RDY)
     assert board.mclk >= board.vdc.seq.active_end
     assert board.vdc.vram[0] == 0x2211
+
+
+def test_start_line_sets_the_raster_phase_at_time_zero():
+    board = Board(FIXED_263, start_line=260)
+    assert board.timeline.line == 260 and board.timeline.in_vsync
+    assert board.vdc.seq.vphase.name == "VSW"  # the vertical sync has begun
+    board.advance(LINE_CLOCKS * 3)
+    assert board.timeline.line == 0 and board.timeline.frame == 1
+    import pytest
+
+    with pytest.raises(ValueError):
+        Board(FIXED_263, start_line=263)

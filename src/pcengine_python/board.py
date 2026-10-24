@@ -53,9 +53,11 @@ class Board:
         pad: ControllerPort | None = None,
         pixel_path: PixelPath | None = None,
         power_on_seed: int | None = None,
+        start_line: int = 0,
     ) -> None:
         """`power_on_seed=None` powers up with zeros (U7, deterministic); a seed randomises RAM,
-        VRAM, the sprite table and the colour table reproducibly."""
+        VRAM, the sprite table and the colour table reproducibly. `start_line` is the raster line
+        at time zero (U1: the real power-up phase is not published)."""
         self.machine = machine
         rng = random.Random(power_on_seed) if power_on_seed is not None else None
 
@@ -84,7 +86,7 @@ class Board:
         self.port = port
         self.audio_sources = [self.psg]
 
-        self.timeline = Timeline(machine, self.vce)
+        self.timeline = Timeline(machine, self.vce, start_line)
         self.capture = Capture(self.vce, pixel_path)
 
         self.pages = PageTable()
@@ -100,6 +102,8 @@ class Board:
                     self.pages.claim(first, last, device)
 
         self.vdc.hsync(0, self.vce.dot_divider)
+        if self.timeline.line == self.timeline.frame_lines - 3:
+            self.vdc.vsync()
 
     # -- the CPU ------------------------------------------------------------------------------
 
