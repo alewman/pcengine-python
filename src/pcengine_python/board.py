@@ -1,0 +1,206 @@
+"""The board: one timeline in master clocks, the page table, and the devices around the CPU.
+
+The CPU core (huc6280-python) calls `read_byte`, `write_byte` and `idle` once per CPU cycle with a
+21-bit physical address. **The board prices the cycle**: 12 master clocks at low speed, 3 at high
+speed (`cpu.high_speed`), plus the VDC/VCE stretch and any `hold`, all inside the callback; it
+never adds `step()`'s return on top (docs/handoff-brief.md, the bus contract).
+
+Where inside a cycle a device sees the access is U23 (provisional): the base cycle elapses, then
+the access happens at that instant, then the stretch cycle for a VDC or VCE address elapses.
+Covell's CPU test (tier 1) will place it.
+"""
+
+from __future__ import annotations
+
+import random
+
+from pcengine_python.cards import RomCard
+from pcengine_python.cpu_io import CpuIo
+from pcengine_python.hardware_page import map_hardware_page
+from pcengine_python.machine import (
+    CPU_CLOCKS_HIGH,
+    CPU_CLOCKS_LOW,
+    HARDWARE_FIRST_PAGE,
+    PC_ENGINE,
+    Machine,
+)
+from pcengine_python.pagetable import PageTable, Ram
+from pcengine_python.psg import Psg
+from pcengine_python.sockets import (
+    BoardPins,
+    Card,
+    CardSlot,
+    ControllerPort,
+    IrqLine,
+    PixelPath,
+    PortDevice,
+    ResetKind,
+)
+from pcengine_python.vce import Vce
+from pcengine_python.vdc import Vdc
+from pcengine_python.video import Capture, Timeline
+
+
+class Board:
+    def __init__(
+        self,
+        machine: Machine = PC_ENGINE,
+        *,
+        card: Card | RomCard | None = None,
+        port: PortDevice | None = None,
+        pad: ControllerPort | None = None,
+        pixel_path: PixelPath | None = None,
+        power_on_seed: int | None = None,
+    ) -> None:
+        """`power_on_seed=None` powers up with zeros (U7, deterministic); a seed randomises RAM,
+        VRAM, the sprite table and the colour table reproducibly."""
+        self.machine = machine
+        rng = random.Random(power_on_seed) if power_on_seed is not None else None
+
+        self.mclk = 0
+        self.cpu = None  # set by attach_cpu
+        self._held = 0
+        self._lines = (False, False, False)
+
+        self.irq2 = IrqLine("IRQ2")
+        self.vce = Vce(power_on=rng)
+        self.vdc = Vdc(hold=self.hold, power_on=rng)
+        self.psg = Psg()
+        self.cpu_io = CpuIo(
+            self.psg,
+            country_pc_engine=machine.country_pc_engine,
+            cd_attached=lambda: self.port is not None and self.port.present,
+            pad=pad,
+            on_irq_disable=self._irq_disable_changed,
+        )
+        self.ram = Ram(machine.work_ram_bytes)
+        if rng is not None:
+            self.ram.data[:] = bytes(rng.getrandbits(8) for _ in range(machine.work_ram_bytes))
+        self.slot = CardSlot(card)  # type: ignore[arg-type]
+        self.port = port
+        self.audio_sources = [self.psg]
+
+        self.timeline = Timeline(machine, self.vce)
+        self.capture = Capture(self.vce, pixel_path)
+
+        self.pages = PageTable()
+        # [hw: pcetech 3] banks $F8-$FB work RAM ($F9-$FB mirror $F8), $FF the hardware page.
+        self.pages.set_base(0x1F00, 0x1F7F, self.ram)
+        map_hardware_page(self.pages, self.vdc, self.vce, self.cpu_io)
+        pins = BoardPins(irq2=self.irq2, hold=self.hold)
+        for device in (card, port):
+            if device is not None:
+                if hasattr(device, "bind"):
+                    device.bind(pins)
+                for first, last in device.claims():
+                    self.pages.claim(first, last, device)
+
+        self.vdc.hsync(0, self.vce.dot_divider)
+
+    # -- the CPU ------------------------------------------------------------------------------
+
+    def attach_cpu(self, cpu: object) -> None:
+        self.cpu = cpu
+        cpu.irq_disable = self.cpu_io.irq.disable  # type: ignore[attr-defined]
+        self._deliver_lines(force=True)
+
+    @property
+    def high_speed(self) -> bool:
+        return bool(self.cpu is not None and self.cpu.high_speed)  # type: ignore[attr-defined]
+
+    def _cycle_clocks(self) -> int:
+        return CPU_CLOCKS_HIGH if self.high_speed else CPU_CLOCKS_LOW
+
+    def read_byte(self, address: int) -> int:
+        cycle = self._cycle_clocks()
+        self.advance(cycle)
+        value = self.pages.read(address, self.mclk)
+        self._finish_access(address, cycle)
+        return value
+
+    def write_byte(self, address: int, value: int) -> None:
+        cycle = self._cycle_clocks()
+        self.advance(cycle)
+        self.pages.write(address, value, self.mclk)
+        self._finish_access(address, cycle)
+
+    def idle(self, address: int | None = None) -> None:
+        """A cycle with no bus transfer (internal cycle or dummy read: nothing reacts)."""
+        self.advance(self._cycle_clocks())
+
+    def _finish_access(self, address: int, cycle: int) -> None:
+        # [hw: pcetech 3 note 3] a VDC or VCE access takes one more cycle, reads and writes.
+        # C4: ares charges it only outside burst mode and only for the VDC; Mednafen charges
+        # a statistical VRAM penalty. MacDonald's rule, tier 2, is this model's.
+        page = address >> 8
+        if HARDWARE_FIRST_PAGE <= page < HARDWARE_FIRST_PAGE + 8:
+            self._held += cycle
+        if self._held:
+            held, self._held = self._held, 0
+            self.advance(held)
+        self._deliver_lines()  # the access itself (a status read) may have changed a line
+
+    def hold(self, clocks: int) -> None:
+        """A device stretches the current cycle (RDY low); applied when the access returns."""
+        self._held += clocks
+
+    # -- time ---------------------------------------------------------------------------------
+
+    def advance(self, clocks: int) -> None:
+        """Let `clocks` master clocks pass and run every device up to the new time."""
+        self.mclk += clocks
+        self._run_to(self.mclk)
+        self._deliver_lines()
+
+    def _run_to(self, target: int) -> None:
+        tl, vdc, io = self.timeline, self.vdc, self.cpu_io
+        while True:
+            line_at = tl.next_line_start
+            vdc_at = vdc.next_event()
+            timer_at = io.next_event()
+            if line_at <= target and (vdc_at is None or line_at <= vdc_at):
+                self._new_line(line_at)
+            elif vdc_at is not None and vdc_at <= target:
+                vdc.catch_up(vdc_at)
+            elif timer_at is not None and timer_at <= target:
+                io.catch_up(timer_at)
+            else:
+                break
+        vdc.catch_up(target)
+        io.catch_up(target)
+
+    def _new_line(self, at: int) -> None:
+        tl, vdc = self.timeline, self.vdc
+        vdc.catch_up(at)
+        timing = tl.timing()
+        self.capture.finish_line(timing, [vdc.pixel_row(1365 // timing.dot_divider)])
+        tl.advance()
+        vdc.hsync(at, self.vce.dot_divider)
+        if tl.line == tl.frame_lines - 3:
+            vdc.vsync()  # [emu: Mednafen] after the hsync of the same line
+
+    # -- interrupts ---------------------------------------------------------------------------
+
+    def _irq_disable_changed(self, mask: int) -> None:
+        if self.cpu is not None:
+            self.cpu.irq_disable = mask  # type: ignore[attr-defined]
+
+    def lines(self) -> tuple[bool, bool, bool]:
+        """(IRQ1, IRQ2, TIQ) as the interrupt controller sees them, before the mask."""
+        return (self.vdc.irq1, self.irq2.level, self.cpu_io.tiq)
+
+    def _deliver_lines(self, force: bool = False) -> None:
+        lines = self.lines()
+        self.cpu_io.irq.irq1, self.cpu_io.irq.irq2 = lines[0], lines[1]
+        if (lines != self._lines or force) and self.cpu is not None:
+            self.cpu.set_irq_lines(*lines)  # type: ignore[attr-defined]
+        self._lines = lines
+
+    # -- reset --------------------------------------------------------------------------------
+
+    def reset(self, kind: ResetKind) -> None:
+        for device in (self.slot.card, self.port):
+            if device is not None:
+                device.reset(kind)
+        if kind is ResetKind.POWER_ON:
+            self.cpu_io.reset()
