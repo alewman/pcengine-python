@@ -26,7 +26,7 @@ Read in this order.
 4. **Mesen2's headless DLL returns black PC Engine frames** until `PcEngineConfig` gets a palette and
    frame skipping is disabled; fixed in `scripts/mesen_run.py`.
 5. **MAME 0.285 cannot log hardware-page accesses** (`wpset` is logical; Lua taps logged nothing).
-6. **The library has no SF2 card**; 152 of 179 cards (listed) need only ROM mirroring; 3 of 80 CDs
+6. **The library has no SF2 card, but the source tree does** ([cartridge.md](cartridge.md), read in place); 152 of 179 cards (listed) need only ROM mirroring; 3 of 80 CDs
    need the Arcade Card; 38 need the Super System Card.
 7. **Three emulators (MAME, Beetle PCE, Geargrafx) boot the Super System Card screen** from a CHD; MAME's own CD source lists its
    fader as "sketchy and unchecked against real HW".

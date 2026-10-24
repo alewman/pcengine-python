@@ -73,6 +73,19 @@ re-releases); `tests/detectors/census-nointro-pce.txt`. **So the first-build sco
 programs (mostly 128 KiB-1 MiB homebrew, several Barbarian ports) whose boards are unknown: they are
 tested by running, not classified.
 
+## Cards read in place from the source tree (not in the library)
+
+The library has no SF2 card, but the Myrient No-Intro tree on disk does (Aubrey, 2026-10-23: "point at it in
+place"). Nothing is copied into the library or the repository; scripts and tests read it where it is:
+
+| Card | Path | Size | CRC32 | SHA-1 |
+| --- | --- | --- | --- | --- |
+| Street Fighter II' - Champion Edition (Japan) | `/data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine - TurboGrafx-16/Street Fighter II' - Champion Edition (Japan).zip` (one `.pce`) | 2,621,440 (2.5 MiB) | `d15cb6bb` | `e757ecdf857803cb46cdf37ecf4596f6eaccdd76` |
+
+The SHA-1 is the one MAME 0.285's `pce.xml` software list carries for this card (emulator tier, but an
+independent dump list). The RetroAchievements copy and the T-En (English patch, "Cabbage v1.0") copy sit beside
+it in the tree; the unpatched No-Intro file is the one to use. This card is M5's SF2 mapper case.
+
 ## Interface
 
 A `Card` is socket 1 of [sockets.md](sockets.md): `claims()` over 256-byte pages, `read(address,
