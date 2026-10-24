@@ -3,8 +3,8 @@
 What holds: every instruction group draws a *vertical* split (over 115 scanlines the interquartile
 range is at most two dots; the photographs show two to three pixels), as they do. What does not
 yet: the split sits 6-10 dots right of the photographed position (docs/m1-record.md), so
-"within one cycle of the photographs" is NOT claimed. The offsets are pinned here as a regression record,
-not as a pass of the exit.
+"within one cycle of the photographs" is NOT claimed. The offsets are pinned
+here as a regression record, not as a pass of the exit.
 
 Needs the test ROM (scripts/fetch_references.py) and the pinned core.
 """
