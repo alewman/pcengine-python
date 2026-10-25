@@ -71,3 +71,108 @@ class RomCard:
 
     def reset(self, kind: ResetKind) -> None:
         pass
+
+
+# --- the mappers beyond plain ROM (M5) --------------------------------------------------------
+
+SF2_THRESHOLD = (
+    2048 * 1024
+)  # [emu: Mednafen huc.cpp sf2_threshold] an image this big has the mapper
+SF2_FIXED = 512 * 1024
+
+
+class Sf2Card(RomCard):
+    """Street Fighter II' Champion Edition (2.5 MiB) and the larger homebrew form.
+
+    The first 512 KiB answer banks $00-$3F; banks $40-$7F show one of the further 512 KiB pages,
+    chosen by a write to bank $00 at $1FF0-$1FFF (the page is the low bits of the address). MAME's
+    `pce_sf2` decodes $1FF0-$1FF3 and four pages; Mednafen decodes $1FF0-$1FFF and masks by the
+    page count: the same for the real card. [emu: both; no manufacturer document] (docs/cartridge.md)
+    """
+
+    def __init__(self, data: bytes) -> None:
+        data = strip_copier_header(data)
+        if len(data) < SF2_THRESHOLD:
+            raise ValueError("an SF2 image is at least 2 MiB")
+        pages = -(-(len(data) - SF2_FIXED) // SF2_FIXED)  # whole 512 KiB pages after the fixed part
+        pages = 1 << (pages - 1).bit_length()  # a power of two, as Mednafen rounds the image up
+        self.data = data + bytes(SF2_FIXED * (1 + pages) - len(data))
+        self.page_mask = pages - 1
+        self.page = 0
+
+    def reset(self, kind: ResetKind) -> None:
+        self.page = 0
+
+    def read(self, address: int, mclk: int) -> int:
+        offset = address & 0xFFFFF
+        if offset < SF2_FIXED:
+            return self.data[offset]
+        return self.data[offset + self.page * SF2_FIXED]  # banks $40-$7F: the chosen page
+
+    def write(self, address: int, value: int, mclk: int) -> None:
+        if address & 0x1FFFF0 == 0x1FF0:  # bank $00, $1FF0-$1FFF
+            self.page = (address & 0xF) & self.page_mask
+
+
+class PopulousCard(RomCard):
+    """Populous: 32 KiB of battery RAM in banks $40-$43 (four 8 KiB banks, not mirrored);
+    the rest as a plain card. [emu: Mednafen: detected by "POPULOUS" at $1F26; MAME `pce_populous`
+    at $80000-$87FFF.] Power-up contents are Mednafen's $FF (U7: arbitrary for a battery RAM)."""
+
+    RAM_BANKS = (0x40, 0x41, 0x42, 0x43)
+
+    def __init__(self, data: bytes) -> None:
+        super().__init__(data)
+        self.ram = bytearray(b"\xff" * 0x8000)
+
+    def read(self, address: int, mclk: int) -> int:
+        if 0x40 <= (address >> 13) <= 0x43:
+            return self.ram[address & 0x7FFF]
+        return super().read(address, mclk)
+
+    def write(self, address: int, value: int, mclk: int) -> None:
+        if 0x40 <= (address >> 13) <= 0x43:
+            self.ram[address & 0x7FFF] = value
+
+
+class TennokoeCard(RomCard):
+    """Tennokoe Bank: a 512 KiB HuCard with 8 KiB of backup RAM (four 2 KiB banks) at $80000-$81FFF
+    of the card's space (banks $40, mirrored through the 64 KiB up to $8FFFF), locked at power-up
+    (reads $FF, writes ignored); a write of a non-zero value anywhere in $F0000-$FFFFF unlocks it, a
+    zero locks it. [emu: MAME `pce_tennokoe`, whose own comment calls the lock "a complete guess"
+    (U29, tier 5); none in the library, so only unit-tested.]"""
+
+    def __init__(self, data: bytes) -> None:
+        super().__init__(data)
+        self.ram = bytearray(b"\xff" * 0x2000)
+        self.locked = True
+
+    def reset(self, kind: ResetKind) -> None:
+        self.locked = True
+
+    def read(self, address: int, mclk: int) -> int:
+        bank = (address >> 13) & 0x7F
+        if bank < 0x40:
+            return super().read(address, mclk)
+        if bank < 0x48:
+            return 0xFF if self.locked else self.ram[address & 0x1FFF]
+        return 0xFF  # nothing else is decoded above the ROM
+
+    def write(self, address: int, value: int, mclk: int) -> None:
+        offset = address & 0xFFFFF
+        if 0x80000 <= offset < 0x90000:
+            if not self.locked:
+                self.ram[address & 0x1FFF] = value
+        elif offset >= 0xF0000:
+            self.locked = value == 0
+
+
+def make_card(data: bytes) -> RomCard:
+    """The card an image is: SF2 from 2 MiB up (Mednafen's threshold), Populous by its title string
+    at $1F26, else a plain ROM. Tennokoe has no detection (no header): build it explicitly."""
+    body = strip_copier_header(data)
+    if len(body) >= SF2_THRESHOLD:
+        return Sf2Card(data)
+    if body[0x1F26 : 0x1F26 + 8] == b"POPULOUS":
+        return PopulousCard(data)
+    return RomCard(data)
