@@ -2,7 +2,7 @@
 
 What holds: every instruction group draws a *vertical* split (over 115 scanlines the interquartile
 range is at most two dots; the photographs show two to three pixels), as they do. What does not
-yet: the split sits 6-10 dots right of the photographed position (docs/m1-record.md), so
+yet: the split sits up to 6 dots right of the photographed position at the -8 default (0 to 12 at 0) (docs/m1-record.md), so
 "within one cycle of the photographs" is NOT claimed. The offsets are pinned
 here as a regression record, not as a pass of the exit.
 
@@ -62,4 +62,4 @@ def test_every_rom_group_draws_a_vertical_split_at_a_recorded_offset():
         assert len(xs) > 100
         assert xs[3 * len(xs) // 4] - xs[len(xs) // 4] <= 2  # vertical, like the photographs
         offset = statistics.median(xs) - 20 - hardware[group]  # in Mednafen columns
-        assert 5 <= offset <= 12  # recorded: 6.2 to 10.0 dots to the right of the hardware
+        assert -3 <= offset <= 8  # a coarse band (M1's registration); -8 dots default, docs/m1-record.md

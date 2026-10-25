@@ -109,7 +109,8 @@ class Capture:
         horizontal sync to the end of the next line's: dot 0 is the first dot after the sync, so
         a 256-wide picture (HDS 2) starts at dot 32 and fits in the row. This is the same
         raster as `timing.start_mclk`, shifted by `HSYNC_CLOCKS`."""
-        row = self.path.mix(timing, vdc_rows)
+        # `path = None` is no socket at all (the row goes straight on): scripts/pixelpath_bench.py
+        row = vdc_rows[0] if self.path is None else self.path.mix(timing, vdc_rows)
         first = timing.start_mclk + HSYNC_CLOCKS
         end = first + LINE_CLOCKS
         div = timing.dot_divider

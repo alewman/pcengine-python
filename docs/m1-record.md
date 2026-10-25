@@ -92,6 +92,10 @@ high-speed cycle is 0.75 dot, the photographs carry about 1.2 dots of error):
 | 0 dots after the sync (the accepted default) | +7.4, +7.0, +11.0, +11.4, +10.2, +8.0, +9.8 | +12.6, +11.0, +8.4, +12.2, +11.2, +11.6, +8.8 |
 | -8 dots (before the sync ends) | +1.4, +1.0, +5.0, -0.6, +4.2, +2.0, +3.8 | +6.6, +5.0, +2.4, +6.2, +5.2, -0.4, +2.8 |
 
+**Decision 2026-10-24 (Aubrey): the default is now -8 dots** (`vblank_dots=-8`, U19, provisional,
+tier 1). Before (0): +7.0 to +11.4 dots in RAM mode, +8.4 to +12.6 in ROM mode. After (-8): -0.6 to
++5.0 and -0.4 to +6.6. The M2 pictures and the gate are unchanged by it (docs/m2-record.md).
+
 So **the offset moves with the vblank position and does not close**: the test measures the
 vblank flag's time to a few dots, and the photographs fit best with it about 8 dots *before* the
 end of the horizontal sync (a negative `vblank_dots`, now supported); the default stays 0 (Aubrey's
