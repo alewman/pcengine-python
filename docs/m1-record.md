@@ -97,9 +97,11 @@ instructions that agree exactly once C7 and C14 are overridden, and the three di
 ### The brief's handoff checks
 
 - **Block-transfer reads of `$0800-$13FF`**: the core calls `idle(address)`, not `read_byte`, so the
-  device is not asked and the I/O buffer is not loaded (test). **Finding for the core**: its range
-  ends at `$13FF`, so a block read of the interrupt registers (`$1400-$1403`) reaches them although
-  pcetech 2 lists them among the unreadable; tier 2 and the core's U7 disagree by that block.
+  device is not asked and the I/O buffer is not loaded (test). **Finding for the core, closed**: its
+  range ended at `$13FF`, so a block read of the interrupt registers (`$1400-$1403`) reached them
+  although pcetech 2 lists them among the unreadable. Raised as huc6280-python issue 0001 and fixed
+  at `7f789e4` (range `$0800-$17FF`, the parenthesis reading; the end is still undecidable there);
+  the board repinned to it on 2026-10-24 and its test now expects 0.
 - **`irq_disable`**: the core's property uses the `$1402` layout; the board forwards every `$1402`
   write and gives raw line levels; a masked IRQ2 is not taken and an unmasked one enters through
   `$FFF6` (test).

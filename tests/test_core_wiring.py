@@ -77,10 +77,9 @@ def test_block_transfer_reads_of_the_io_range_return_zero_and_leave_the_buffer_a
     assert board.cpu_io.buffer.value == 0xFF  # which does load the buffer
 
 
-def test_core_zero_read_range_stops_short_of_the_interrupt_registers():
-    """Finding (not a board bug): pcetech 2 says block reads of $0800-$1400 return 0 and lists
-    the IRQ registers among the things that cannot be read; huc6280's U7 range ends at $13FF, so
-    a block read of $1402 reaches the register. Recorded in docs/m1-record.md for the core."""
+def test_block_read_of_the_interrupt_registers_returns_zero():
+    """pcetech 2 lists the IRQ registers among the things a block read cannot see. The core's
+    range ended at $13FF until huc6280-python issue 0001 (closed at 7f789e4) took it to $17FF."""
     code = bytes(
         [0xA9, 0xFF, 0x53, 0x04, 0xA9, 0xF8, 0x53, 0x08, 0x73, 0x02, 0x54, 0x00, 0x60, 0x01, 0x00]
     )
@@ -88,7 +87,8 @@ def test_core_zero_read_range_stops_short_of_the_interrupt_registers():
     system = build(board)
     board.cpu_io.buffer.value = 0xFA
     run_instructions(system, 6)
-    assert board.ram.data[0] == 0xF8  # $1402 answered: disable bits 0 | buffer upper five
+    assert board.ram.data[0] == 0x00  # the core answered 0; $1402 was not asked
+    assert board.cpu_io.buffer.value == 0xFA  # and the I/O buffer was not loaded
 
 
 def test_block_transfer_writes_to_the_io_range_work_and_load_the_buffer():
