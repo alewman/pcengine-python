@@ -57,6 +57,7 @@ class Board:
         start_offset: int = 0,
         vblank_dots: int | None = 0,
         vertical_at_line_start: bool = False,
+        dma_resumes: bool = True,
     ) -> None:
         """`power_on_seed=None` powers up with zeros (U7, deterministic); a seed randomises RAM,
         VRAM, the sprite table and the colour table reproducibly. `start_line` is the raster line
@@ -78,6 +79,7 @@ class Board:
             power_on=rng,
             vblank_dots=vblank_dots,
             vertical_at_line_start=vertical_at_line_start,
+            dma_resumes=dma_resumes,
         )
         self.psg = Psg()
         self.cpu_io = CpuIo(

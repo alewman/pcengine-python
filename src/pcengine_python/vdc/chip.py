@@ -26,6 +26,8 @@ from collections.abc import Callable
 
 from pcengine_python.machine import HSYNC_CLOCKS
 from pcengine_python.vdc import regs as r
+from pcengine_python.vdc.background import Background
+from pcengine_python.vdc.dma import DmaEngine
 from pcengine_python.vdc.sequencer import Sequencer, VPhase
 
 VRAM_WORDS = 0x8000  # [hw: pcetech 5] 64 KiB; the upper half of the 128 KiB space mirrors it
@@ -44,6 +46,7 @@ class Vdc:
         power_on: random.Random | None = None,
         vblank_dots: int | None = 0,
         vertical_at_line_start: bool = False,
+        dma_resumes: bool = True,
     ) -> None:
         self.regs = r.VdcRegisters()
         self._hold = hold
@@ -55,7 +58,17 @@ class Vdc:
             self.vram = array("H", (power_on.getrandbits(16) for _ in range(VRAM_WORDS)))
             self.sat = array("H", (power_on.getrandbits(16) for _ in range(256)))
         self.status = 0
+        self.now = 0  # master-clock time of the sequencer event being handled
         self.seq = Sequencer(self, vblank_dots, vertical_at_line_start)
+        self.dma = DmaEngine(self, resume=dma_resumes)
+        self._background = Background()
+        # [emu: Mednafen BG_YMoo, BG_YOffset, BG_XOffset] the scroll as the line latched it
+        self._bg_y = 0
+        self._need_bg_y_step = False
+        self._bg_y_offset = 0
+        self._bg_x_offset = 0
+        self._mwr_cache = 0  # MWR as the vertical sync latched it
+        self._row: list[int] | None = None
         # A pending CPU VRAM access: ("w", address, word) or ("r", address, 0)
         self._pending_write: tuple[int, int] | None = None
         self._pending_read: int | None = None
@@ -73,7 +86,11 @@ class Vdc:
         return self._pending_write is not None or self._pending_read is not None
 
     def next_event(self) -> int | None:
-        times = [t for t in (self.seq.next_event(), self._commit_event()) if t is not None]
+        times = [
+            t
+            for t in (self.seq.next_event(), self._commit_event(), self.dma.next_event())
+            if t is not None
+        ]
         return min(times) if times else None
 
     def _commit_event(self) -> int | None:
@@ -82,13 +99,20 @@ class Vdc:
     def catch_up(self, mclk: int) -> None:
         while True:
             seq_t = self.seq.next_event()
+            dma_t = self.dma.next_event()
             commit_t = self._commit_at if self.bsy else None
-            if commit_t is not None and commit_t <= mclk and (seq_t is None or commit_t <= seq_t):
-                self.commit_pending()
-            elif seq_t is not None and seq_t <= mclk:
-                self.seq.run_to(seq_t)
-            else:
+            due = [t for t in (seq_t, dma_t, commit_t) if t is not None and t <= mclk]
+            if not due:
+                self.dma.advance(mclk)
                 return
+            t = min(due)
+            if dma_t is not None and dma_t == t:
+                self.dma.advance(t)
+            elif commit_t is not None and commit_t == t and (seq_t is None or commit_t <= seq_t):
+                self.commit_pending()
+            else:
+                self.dma.advance(t)
+                self.seq.run_to(t)
 
     # -- the sync generator's calls (the VCE's line clock) -----------------------------------
 
@@ -97,6 +121,8 @@ class Vdc:
 
     def vsync(self) -> None:
         self.seq.vsync()
+        self._need_bg_y_step = False
+        self._mwr_cache = self.regs.mwr
 
     # -- events from the sequencer ------------------------------------------------------------
 
@@ -109,6 +135,58 @@ class Vdc:
         # line; values outside $40-$146 never match.
         if count == self.regs.rcr - 0x40 and self.regs.cr & r.CR_RASTER_IRQ:
             self.status |= r.RR
+
+    def latch_byr(self) -> None:
+        self._step_bg_y()
+        self._bg_y_offset = self._bg_y
+
+    def latch_bxr(self) -> None:
+        self._bg_x_offset = self.regs.value[r.BXR] & 0x3FF
+
+    def _step_bg_y(self) -> None:
+        if self._need_bg_y_step:
+            self._need_bg_y_step = False
+            self._bg_y = (
+                (self.regs.value[r.BYR] & 0x1FF) if self.seq.rcr_count == 0 else self._bg_y + 1
+            )
+
+    def line_counter_step(self, count: int) -> None:
+        self._step_bg_y()
+        self._need_bg_y_step = True
+
+    def display_started(self) -> None:
+        self.dma.display_started(self.now)
+
+    def display_ended(self) -> None:
+        self.dma.display_ended(self.now)
+
+    def burst_began(self) -> None:
+        self.dma.advance(self.now)
+
+    def render_line(self) -> None:
+        """The 9-bit pixels of this line, drawn as the display width begins (M2: background only;
+        the sprites are M3). [hw: pcetech 5.2, 6] Backdrop (background colour 0, $000) inside the
+        width if either layer is on, overscan (sprite colour 0, $100) otherwise and outside."""
+        seq = self.seq
+        dots = 1365 // seq.divider
+        row = [0x100] * dots
+        self._row = row
+        if not seq.display_line:
+            return
+        row_start = seq.origin + HSYNC_CLOCKS
+        first = (seq.active_start - row_start) // seq.divider
+        width = (seq.active_end - seq.active_start) // seq.divider
+        cr = seq.cr_cache
+        if cr & 0x80:
+            pixels = self._background.row(
+                self.vram, VRAM_WORDS, self._mwr_cache, self._bg_x_offset, self._bg_y_offset, width
+            )
+        elif cr & 0x40:
+            pixels = [0x000] * width
+        else:
+            return
+        end = min(first + width, dots)
+        row[first:end] = pixels[: end - first]
 
     def commit_pending(self) -> None:
         if self._pending_write is not None:
@@ -172,22 +250,38 @@ class Vdc:
             self._data_access(mclk)
             self._pending_read = regs.value[r.MARR]
             self._schedule_commit(mclk)
+        elif register == r.BYR:
+            # [emu: Mednafen] set on both bytes: only changing on the MSB breaks a game
+            self._bg_y = regs.value[r.BYR] & 0x1FF
         elif register == r.SATB:
-            pass  # M2: arms the VRAM -> SAT DMA ("armed" at the MSB write)
+            self.dma.arm_satb()  # [mfr] armed by a write; starts when the display period ends
         elif register == r.LENR and msb:
-            pass  # M2: starts the VRAM -> VRAM DMA
+            self.dma.start(mclk)
 
     # -- VRAM access timing -------------------------------------------------------------------
 
     def _data_access(self, mclk: int) -> None:
         """A second data-port access while one is pending holds the CPU until it commits."""
+        now = mclk
+        while self.bsy and self.dma.busy:  # the pending access is stuck behind a transfer
+            due = self.dma.next_event()
+            if due is None:  # paused behind the display: nothing to wait for but the end of it
+                self.dma.force_complete(now)
+                break
+            if due > now:
+                self._hold(due - now)
+            self.catch_up(due)
+            now = max(now, due)
         if self.bsy:
-            wait = self._commit_at - mclk
+            wait = self._commit_at - now
             if wait > 0:
                 self._hold(wait)
             self.commit_pending()
 
     def _schedule_commit(self, mclk: int) -> None:
+        if self.dma.busy:  # waits for the transfer; its end commits (BSY meanwhile)
+            self._commit_at = 1 << 62
+            return
         self._commit_at = self.slot_time(mclk)
         if self._commit_at <= mclk:
             self.commit_pending()
@@ -217,18 +311,8 @@ class Vdc:
         return self.seq.vphase
 
     def pixel_row(self, dots: int) -> list[int]:
-        """The 9-bit VDC output for the line that just ran: M1 has no tiles or sprites.
-
-        [hw: pcetech 5.2, 6] Inside the display width of a display-period line, with the
-        background or sprites enabled, the backdrop (background palette 0 colour 0 = $000)
-        shows; with both off ("burst") and outside the width, the overscan colour (sprite
-        palette 0 colour 0 = $100)."""
-        seq = self.seq
-        row = [0x100] * dots
-        if seq.display_line and seq.cr_cache & 0xC0:
-            row_start = seq.origin + HSYNC_CLOCKS  # dot 0 of a row: the end of the line's sync
-            first = (seq.active_start - row_start) // seq.divider
-            last = (seq.active_end - row_start) // seq.divider
-            for x in range(max(first, 0), min(last, dots)):
-                row[x] = 0x000
+        """The 9-bit VDC output for the line that just ran (drawn by `render_line`)."""
+        row = self._row
+        if row is None or len(row) != dots:
+            return [0x100] * dots
         return row

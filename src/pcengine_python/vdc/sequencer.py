@@ -96,8 +96,13 @@ class Sequencer:
 
     def run_to(self, mclk: int) -> None:
         while self._events and self._events[0][0] <= mclk:
-            _, kind = self._events.pop(0)
-            if kind == "leave":
+            when, kind = self._events.pop(0)
+            self.chip.now = when
+            if kind == "byr":
+                self.chip.latch_byr()
+            elif kind == "bxr":
+                self.chip.latch_bxr()
+            elif kind == "leave":
                 self._leave_hsync()
             elif kind == "vblank":
                 self._vblank()
@@ -130,8 +135,15 @@ class Sequencer:
         if self.vertical_at_line_start:
             self._advance_vertical()
         # Stale events of the previous line are dropped, as Mednafen's HPhase is overwritten.
+        # [emu: Mednafen TimeFromHDSStartToBYRLatch / TimeFromBYRLatchToBXRLatch] the scroll
+        # registers are latched a few dots after the display-start phase begins: BYR at dot 1,
+        # BXR at dot 3 for HDS <= 2; later and one dot apart for a wider HDS (U3).
+        to_byr = 1 if hds <= 2 else (hds + 1) * 8 - 21
+        to_bxr = to_byr + (2 if hds <= 2 else 1)
         self._events = [
             (self.hds_start, "hds"),
+            (self.hds_start + to_byr * divider, "byr"),
+            (self.hds_start + to_bxr * divider, "bxr"),
             (self.active_start, "hdw"),
             (self.final_at, "final"),
         ]
@@ -170,6 +182,7 @@ class Sequencer:
 
     def _hdw(self) -> None:
         self.display_line = self.vphase == VPhase.VDW and not self.burst_mode
+        self.chip.render_line()
         self.need_rcr_inc = True
         if self.vblank_dots is None and not self.vertical_at_line_start:
             self._vblank()
@@ -185,6 +198,8 @@ class Sequencer:
             # [emu: Mednafen] burst mode is decided once a frame, from CR as the display
             # period begins; pcetech 5.1 "locked when the next frame starts" (footnote 1).
             self.burst_mode = not (self.chip.regs.cr & 0xC0)
+            if self.burst_mode:
+                self.chip.burst_began()
         if self.need_rcr_inc:
             self._inc_rcr()
             self.need_rcr_inc = False
@@ -194,6 +209,7 @@ class Sequencer:
         self.vds, self.vsw, self.vdw, self.vcr = regs.vds, regs.vsw, regs.vdw, regs.vcr
 
     def _inc_rcr(self) -> None:
+        self.chip.line_counter_step(self.rcr_count)
         self.rcr_count += 1
         if not self.vertical_at_line_start:
             self._advance_vertical()
@@ -204,12 +220,15 @@ class Sequencer:
         self.scanline_from_vsync += 1
         if self.vphase_counter <= 0:
             self.vphase = VPhase((self.vphase + 1) % 4)
+            if self.vphase == VPhase.VCR:
+                self.chip.display_ended()
             if self.vphase == VPhase.VDS:
                 self.vphase_counter = self.vds + 2
             elif self.vphase == VPhase.VDW:
                 self.vphase_counter = self.vdw + 1
                 self.rcr_count = 0
                 self.need_vb_irq_test = True
+                self.chip.display_started()
             elif self.vphase == VPhase.VCR:
                 self.vphase_counter = self.vcr
                 if self.vertical_at_line_start and self.vblank_dots is None:
@@ -233,3 +252,19 @@ class _ChipSide(Protocol):
     def raster_test(self, count: int) -> None: ...
 
     def commit_pending(self) -> None: ...
+
+    def latch_byr(self) -> None: ...
+
+    def latch_bxr(self) -> None: ...
+
+    def render_line(self) -> None: ...
+
+    def line_counter_step(self, count: int) -> None: ...
+
+    def display_started(self) -> None: ...
+
+    def display_ended(self) -> None: ...
+
+    def burst_began(self) -> None: ...
+
+    now: int
