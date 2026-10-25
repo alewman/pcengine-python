@@ -7,6 +7,11 @@ Samurai-Ghost) at 300 and 600 frames, and for the U15 outliers that are plain PC
 (Barbarian ZX, Death Sword PC, Mai Nurse, Gunboat). No difference needed a name: there is none to
 name at those frames. Results: `tests/detectors/m3-sprites-2026-10-24.txt`.
 
+After the core's fix for issue 0002 (a379416, pinned the same day) the full gate is green on CPython
+and PyPy (183 tests; Covell's slow test too), After Burner II is identical to both detectors with no
+experiment flag, and the MAME lockstep is unchanged (first difference at instruction 2, `CSH`; with
+C7 and C14 overridden, 136,975 instructions, then the first vblank interrupt: m1-record.md).
+
 ## Built
 
 `vdc/sprites.py` (scan and draw), hooks in `vdc/chip.py` and `vdc/sequencer.py`; 15 tests

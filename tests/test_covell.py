@@ -2,9 +2,9 @@
 
 What holds: every instruction group draws a *vertical* split (over 115 scanlines the interquartile
 range is at most two dots; the photographs show two to three pixels), as they do. What does not
-yet: the split sits up to 6 dots right of the photographed position at the -8 default (0 to 12 at 0) (docs/m1-record.md), so
-"within one cycle of the photographs" is NOT claimed. The offsets are pinned
-here as a regression record, not as a pass of the exit.
+yet: the split sits up to 6 dots right of the photographed position at the -8 default (0 to
+12 at 0) (docs/m1-record.md), so "within one cycle of the photographs" is NOT claimed.
+The offsets are pinned here as a regression record, not as a pass of the exit.
 
 Needs the test ROM (scripts/fetch_references.py) and the pinned core. The band is the coarse
 regression of M1's registration through Mednafen's screenshot; `scripts/covell_calibrate.py` is the

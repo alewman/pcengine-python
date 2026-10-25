@@ -12,11 +12,12 @@ requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "alewman" }]
 # The CPU core, huc6280-python, pinned by git commit (a local repository until it is public):
-# 7f789e4 = rungs 0-5 and tooling done (MAME-replayed 21.0M instructions with 0 register
-# divergences at 143eb29) plus block-transfer zero reads over $0800-$17FF (issue 0001).
-# Repin deliberately and rerun the gate (docs/m1-record.md).
+# a379416 = Release 0.1.0 over 1884f23 (issue 0002: an interrupt whose source vanished before
+# entry is no longer entered through IRQ2), over 7f789e4 (block-transfer zero reads over
+# $0800-$17FF, issue 0001), over 143eb29 (rungs 0-5, MAME-replayed 21.0M instructions with 0
+# register divergences). Repin deliberately and rerun the gate (docs/m1-record.md).
 dependencies = [
-    "huc6280-python @ git+file:///data/emu/huc6280-python@7f789e4344a418f75240de2dd13c3253156ea9dd",
+    "huc6280-python @ git+file:///data/emu/huc6280-python@a379416d9c753075200a28de2c40d30de18f04d0",
 ]
 
 [project.optional-dependencies]

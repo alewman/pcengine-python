@@ -128,6 +128,9 @@ So the criterion "0 unexplained" is **not** met: three named causes are overridd
 instructions, and the fourth stop is not explained. The honest results are the 136,975
 instructions that agree exactly once C7 and C14 are overridden, and the three disagreements above.
 
+Re-run on 2026-10-24 with the core at a379416 and the vblank default at -8: the same two stops
+(instruction 2, `CSH`; instruction 136,975 with C7 and C14 overridden); the default moved neither.
+
 ### The brief's handoff checks
 
 - **Block-transfer reads of `$0800-$13FF`**: the core calls `idle(address)`, not `read_byte`, so the

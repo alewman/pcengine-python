@@ -54,7 +54,13 @@ is no disagreement to explain for these ten at the chosen frames. Their frame nu
 ours by up to 12: After Burner II's title animation steps every four frames and ours (frame 300)
 equals Mesen2's frames 302-305, and Barbarian's Beetle frames lag 2-19; the window absorbs it.
 
-### The one title that needed the core to change: After Burner II
+### The one title that needed the core to change: After Burner II (fixed 2026-10-24)
+
+**Update: the core's commit 1884f23 ("Fix issue 0002", class attribute `vanished_interrupt`, default
+Mesen2's rule, C18 there) is pinned (a379416, Release 0.1.0). After Burner II is then identical to
+Mesen2 (sprites on, 1.0000 / 1.0000) and to Beetle with no experiment flag; the flag is no longer
+needed.** What follows is the history.
+
 
 With the pinned core the game executes garbage after about 90 frames. Its timer handler runs
 `CLI` and then `STZ $1403` (acknowledge the timer); the core polls in the instruction's
