@@ -101,7 +101,7 @@ class Psg:
         # host-rate output (a box average of the step stream; outside the reference path)
         self.rate_hz = rate_hz
         self.gain = 1.0
-        self._levels = [10 ** (-1.5 * u / 20) if u < self.silent_units else 0.0 for u in range(64)]
+        self._levels = [10 ** (-1.5 * u / 20) if u < self.silent_units else 0.0 for u in range(128)]  # up to 30 + 31 + 30
         self._acc = [0.0, 0.0]
         self._acc_steps = 0.0
         self._phase = 0.0

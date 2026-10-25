@@ -277,3 +277,14 @@ def test_host_rate_output_averages_the_step_stream():
     assert 995 <= len(out) <= 1000  # 81,000 steps at 81.17 steps a sample
     assert len(set(out[5:])) == 1 and out[10][0] == out[10][1] > 0
     assert psg.rate_hz == 44100.0
+
+
+def test_rendering_survives_the_quietest_balance_and_volume_sums():
+    """Armed F's PSG set master + channel + pan attenuation past 63 units (30 + 31 + 30): the
+    level table must cover the sum, and anything past the silent mark is silent."""
+    psg = Psg()
+    psg.render_audio = True
+    w(psg, 1, 0x11)  # master balance nibbles 1: 28 units each side
+    start(psg, 0, 0x100, control=0x81, balance=0x00)  # volume 1 (30 units), pan nibble 0 (30)
+    psg.advance_to(psg.step + 2000)
+    assert psg.attenuation(0, 0) > 63
