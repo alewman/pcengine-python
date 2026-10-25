@@ -1,5 +1,10 @@
 """SF2, Populous, Tennokoe and the card factory (docs/cartridge.md; emulator tier for all three)."""
 
+import hashlib
+import zipfile
+import zlib
+from pathlib import Path
+
 import pytest
 
 from pcengine_python.cards import (
@@ -97,3 +102,23 @@ def test_odd_sizes_repeat_modulo_the_image_u18(banks_count):
     """[emu: Mednafen `x % (len / 8192)`] the odd sizes of the library (72 KiB .. 872 KiB)."""
     card = RomCard(banks(banks_count))
     assert [read(card, b) for b in range(128)] == [b % banks_count % 251 for b in range(128)]
+
+
+SF2_ZIP = Path(
+    "/data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine - TurboGrafx-16/"
+    "Street Fighter II' - Champion Edition (Japan).zip"
+)
+
+
+@pytest.mark.skipif(not SF2_ZIP.exists(), reason="BYOR: the No-Intro tree is Aubrey's")
+def test_the_real_sf2_card_read_in_place_has_the_documented_hashes():
+    with zipfile.ZipFile(SF2_ZIP) as z:
+        data = z.read(z.namelist()[0])
+    assert zlib.crc32(data) == 0xD15CB6BB
+    assert hashlib.sha1(data).hexdigest() == "e757ecdf857803cb46cdf37ecf4596f6eaccdd76"
+    card = make_card(data)
+    assert isinstance(card, Sf2Card) and card.page_mask == 3
+    for page in range(4):
+        card.write(0x1FF0 + page, 0, 0)
+        assert card.read(0x80000, 0) == data[0x80000 + page * 0x80000]
+        assert card.read(0xFFFFF, 0) == data[0xFFFFF + page * 0x80000]

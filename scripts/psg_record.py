@@ -18,7 +18,7 @@ from pathlib import Path
 
 from pcengine_python import pads
 from pcengine_python.board import Board
-from pcengine_python.cards import RomCard
+from pcengine_python.cards import card_from_path
 from pcengine_python.machine import PC_ENGINE, TURBOGRAFX_16
 from pcengine_python.system import build
 
@@ -40,7 +40,7 @@ def main() -> int:
     p.add_argument("--tg16", action="store_true")
     a = p.parse_args()
     board = Board(
-        TURBOGRAFX_16 if a.tg16 else PC_ENGINE, card=RomCard.from_path(a.card), pad=pads.Pad2()
+        TURBOGRAFX_16 if a.tg16 else PC_ENGINE, card=card_from_path(a.card), pad=pads.Pad2()
     )
     recorder = Recorder()
     board.cpu_io._psg = recorder  # the recorder takes the PSG's place on the bus

@@ -20,16 +20,14 @@ from pathlib import Path
 
 from pcengine_python import pads
 from pcengine_python.board import Board
-from pcengine_python.cards import RomCard
+from pcengine_python.cards import card_from_path
 from pcengine_python.machine import PC_ENGINE, TURBOGRAFX_16
 from pcengine_python.sockets import DirectPath
 from pcengine_python.system import build
 
 
 def run(card: Path, frames: int, tg16: bool, bypass: bool) -> float:
-    board = Board(
-        TURBOGRAFX_16 if tg16 else PC_ENGINE, card=RomCard.from_path(card), pad=pads.Pad2()
-    )
+    board = Board(TURBOGRAFX_16 if tg16 else PC_ENGINE, card=card_from_path(card), pad=pads.Pad2())
     if bypass:
         board.capture.path = None
     system = build(board)

@@ -87,7 +87,8 @@ class Sf2Card(RomCard):
     The first 512 KiB answer banks $00-$3F; banks $40-$7F show one of the further 512 KiB pages,
     chosen by a write to bank $00 at $1FF0-$1FFF (the page is the low bits of the address). MAME's
     `pce_sf2` decodes $1FF0-$1FF3 and four pages; Mednafen decodes $1FF0-$1FFF and masks by the
-    page count: the same for the real card. [emu: both; no manufacturer document] (docs/cartridge.md)
+    page count: the same for the real card. [emu: both; no manufacturer document]
+    (docs/cartridge.md)
     """
 
     def __init__(self, data: bytes) -> None:
@@ -176,3 +177,8 @@ def make_card(data: bytes) -> RomCard:
     if body[0x1F26 : 0x1F26 + 8] == b"POPULOUS":
         return PopulousCard(data)
     return RomCard(data)
+
+
+def card_from_path(path: str | Path) -> RomCard:
+    """`make_card` over a file read in place (BYOR: nothing is copied)."""
+    return make_card(Path(path).read_bytes())

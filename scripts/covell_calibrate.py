@@ -23,7 +23,7 @@ from PIL import Image
 
 from pcengine_python import pads
 from pcengine_python.board import Board
-from pcengine_python.cards import RomCard
+from pcengine_python.cards import card_from_path
 from pcengine_python.system import build
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -78,7 +78,7 @@ def our_split(frame) -> float:
 
 def run(vblank_dots: int, mode: str) -> None:
     pad = pads.Pad2()
-    system = build(Board(card=RomCard.from_path(ROM), pad=pad, vblank_dots=vblank_dots))
+    system = build(Board(card=card_from_path(ROM), pad=pad, vblank_dots=vblank_dots))
     frames = lambda n: [system.run_frame() for _ in range(n)]  # noqa: E731
 
     def tap(mask: int) -> None:
