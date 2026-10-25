@@ -122,6 +122,9 @@ class Sequencer:
         regs = self.chip.regs
         self._next_line = (mclk, divider, regs.hds, regs.hdw)
         self._events.append((mclk + HSYNC_CLOCKS, "leave"))
+        if self.vblank_dots is not None and self.vblank_dots < 0:
+            # before the sync ends: the line's own events do not exist yet
+            self._events.append((mclk + HSYNC_CLOCKS + self.vblank_dots * divider, "vblank"))
         self._events.sort(key=lambda e: e[0])
 
     def _leave_hsync(self) -> None:
@@ -147,7 +150,7 @@ class Sequencer:
             (self.active_start, "hdw"),
             (self.final_at, "final"),
         ]
-        if self.vblank_dots is not None:
+        if self.vblank_dots is not None and self.vblank_dots >= 0:
             self._events.append((origin + HSYNC_CLOCKS + self.vblank_dots * divider, "vblank"))
             self._events.sort(key=lambda e: e[0])
 

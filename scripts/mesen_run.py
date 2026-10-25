@@ -64,13 +64,17 @@ class PceConfig(ctypes.Structure):
     _fields_ = [("raw", ctypes.c_ubyte * 8080)]
 
 
-def pce_config() -> PceConfig:
+def pce_config(no_sprites: bool = False) -> PceConfig:
     raw = bytearray(8080)
     struct.pack_into("<I", raw, 5960, 2)  # CdRomType = Arcade (the header's default)
     struct.pack_into("<I", raw, 5968, 1)  # RamPowerOnState = AllZeros: deterministic
     for i in range(8):  # ChannelVol[6], CdAudioVolume, AdpcmVolume
         struct.pack_into("<I", raw, 5976 + 4 * i, 100)
     raw[6008] = 1  # UseHuC6280aAudio
+    # Core/Shared/SettingTypes.h order: RemoveSpriteLimit 6009, DisableSprites 6010,
+    # DisableSpritesVdc2 6011, DisableBackground 6012, DisableBackgroundVdc2 6013 (the header
+    # puts DisableFrameSkipping at 6014, as measured above).
+    raw[6010] = 1 if no_sprites else 0
     raw[6014] = 1  # DisableFrameSkipping
     for i in range(512):  # index = the VCE's 9-bit GGGRRRBBB (assumed; checked against MAME)
         g, r, b = (i >> 6) & 7, (i >> 3) & 7, i & 7
@@ -79,7 +83,9 @@ def pce_config() -> PceConfig:
     return PceConfig.from_buffer_copy(bytes(raw))
 
 
-def run(lib: Path, rom: Path, frames: int, home: Path, timeout: float) -> tuple[str, float]:
+def run(
+    lib: Path, rom: Path, frames: int, home: Path, timeout: float, no_sprites: bool = False
+) -> tuple[str, float]:
     m = ctypes.CDLL(str(lib))
     m.InitializeEmu.argtypes = [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p] + [
         ctypes.c_bool
@@ -94,7 +100,7 @@ def run(lib: Path, rom: Path, frames: int, home: Path, timeout: float) -> tuple[
     m.InitDll()
     m.InitializeEmu(str(home.resolve()).encode(), None, None, True, True, True, True)
     m.SetPcEngineConfig.argtypes = [PceConfig]
-    m.SetPcEngineConfig(pce_config())
+    m.SetPcEngineConfig(pce_config(no_sprites))
     m.Pause()
     m.SetEmulationFlag(CONSOLE_MODE, True)
     if not m.LoadRom(str(rom.resolve()).encode(), b""):
@@ -143,6 +149,7 @@ def main() -> int:
     p.add_argument("--frames", type=int, default=300)
     p.add_argument("--png", type=Path, required=True)
     p.add_argument("--home", type=Path, default=ROOT / "tests/runs/mesen-home")
+    p.add_argument("--no-sprites", action="store_true", help="Mesen2 DisableSprites")
     p.add_argument("--width", type=int, default=0, help="frame width when it is ambiguous")
     p.add_argument("--timeout", type=float, default=120.0, help="wall-clock seconds")
     p.add_argument(
@@ -154,7 +161,7 @@ def main() -> int:
     lib = a.lib or next((x for x in LIBS if x.exists()), None)
     if lib is None:
         raise SystemExit("no MesenCore.so: build it (docs/validation.md) or pass --lib")
-    log, wall = run(lib, a.rom, a.frames, a.home, a.timeout)
+    log, wall = run(lib, a.rom, a.frames, a.home, a.timeout, a.no_sprites)
     if DONE not in log:
         print(f"timed out after {wall:.1f} s")
         return 1
