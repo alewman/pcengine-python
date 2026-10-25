@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
 """Compare this board's picture with Mesen2's and Beetle PCE's at the 9-bit palette value (M2).
 
-    python scripts/m2_compare.py WORKDIR/TITLE [ours300d.pkl]   # a directory holding
-        ours300.pkl     scripts/m2_ours.py            (rows of 9-bit palette values)
-        mesen300.png    scripts/mesen_run.py          (sprites on)
-        mesen300ns.png  scripts/mesen_run.py --no-sprites
-        beetle300.png   scripts/libretro_run.py       (Beetle PCE: sprites always on)
+    python scripts/m2_compare.py REFDIR OURS.pkl      # needs Pillow and numpy
 
-Every picture is brought to 9-bit values (`round(c * 7 / 255)` per channel, which inverts both
-detectors' colour tables exactly), then aligned to ours by the horizontal and vertical offset
-that makes most pixels equal (dot clocks of 1 pixel per dot in all three). Nothing is masked: the
-numbers are the share of equal pixels and of fully equal rows over the overlap, and the first
-differing row with its first differing columns.
+REFDIR holds the pictures of scripts/m2_refs.py over a window of frames (mesen_ns_<n>.png with
+sprites off, mesen_<n>.png with them on, beetle_<n>.png) and OURS.pkl is scripts/m2_ours.py's
+frame (rows of 9-bit palette values).
 
-Sprites are milestone 3. So the judge for the background is Mesen2 with `DisableSprites` (A);
-ours against the sprite-showing pictures (B, with Beetle) shows what M3 still owes; (C) is ours
-against Beetle on the pixels where Beetle equals Mesen2-without-sprites, i.e. where the two
-detectors agree on the background: that is the "wherever the two agree" of the exit.
+Every picture is brought to 9-bit values (`round(c * 7 / 255)` per channel inverts both
+detectors' colour tables exactly) and aligned to ours by the horizontal and vertical offset that
+makes most pixels equal (one pixel per dot in all three). Nothing is masked: the numbers are the
+share of equal pixels and of fully equal rows over the overlap, and the first differing pixel.
+
+Sprites are milestone 3. So the judge for the background is Mesen2 with `DisableSprites`:
+
+- A  ours against the best Mesen2 frame, sprites off (the window absorbs a few frames of
+     power-on phase difference between the emulators; the frame found is printed);
+- B  ours against the best Beetle frame (its sprites stay on: what M3 still owes);
+- C  ours against Beetle on the pixels where Beetle equals Mesen2-without-sprites, i.e. where
+     the two detectors agree on the background: the "wherever the two agree" of the M2 exit;
+- D  Mesen2 without sprites against Beetle (the sprites are the difference);
+- E  the two detectors as shipped (Mesen2 with sprites, Beetle): the first differing pixel, and
+     whether it is a sprite or a background pixel.
 """
 
 from __future__ import annotations
@@ -25,144 +30,153 @@ import pickle
 import sys
 from pathlib import Path
 
+import numpy as np
 from PIL import Image
 
 
-def nine_bit(path: Path) -> list[list[int]]:
-    img = Image.open(path).convert("RGB")
-    w, h = img.size
-    px = img.load()
-    return [
-        [
-            (round(px[x, y][1] * 7 / 255) << 6)
-            | (round(px[x, y][0] * 7 / 255) << 3)
-            | round(px[x, y][2] * 7 / 255)
-            for x in range(w)
-        ]
-        for y in range(h)
-    ]
+def nine_bit(path: Path) -> np.ndarray:
+    rgb = np.asarray(Image.open(path).convert("RGB"), dtype=np.float64)
+    q = np.rint(rgb * 7 / 255).astype(np.uint16)
+    return (q[..., 1] << 6) | (q[..., 0] << 3) | q[..., 2]
 
 
-def overlap(a, b, dx, dy):
-    """Pairs (a[y][x], b[y+dy][x+dx]) over the common area, as row-wise slices."""
-    for y, row in enumerate(a):
-        yy = y + dy
-        if not 0 <= yy < len(b):
-            continue
-        other = b[yy]
-        x0 = max(0, -dx)
-        x1 = min(len(row), len(other) - dx)
-        if x1 > x0:
-            yield y, x0, row[x0:x1], other[x0 + dx : x1 + dx]
+def window(a, b, dx, dy):
+    """Aligned views: a[y][x] against b[y + dy][x + dx] over the common area."""
+    y0, y1 = max(0, -dy), min(a.shape[0], b.shape[0] - dy)
+    x0, x1 = max(0, -dx), min(a.shape[1], b.shape[1] - dx)
+    if y1 <= y0 or x1 <= x0:
+        return None
+    return (y0, x0), a[y0:y1, x0:x1], b[y0 + dy : y1 + dy, x0 + dx : x1 + dx]
 
 
-def best_alignment(a, b, dxs, dys):
+def best_alignment(a, b, dxs, dys, prefer=()):
+    """The (share, dx, dy) with most equal pixels; ties go to the dx nearest `prefer` (a flat
+    picture matches everywhere, and the dot clock's known offset is the honest answer then)."""
     best = (-1.0, 0, 0)
-    for dy in dys:
-        for dx in dxs:
-            equal = total = 0
-            for y, _, ra, rb in overlap(a, b, dx, dy):
-                if y % 4:
-                    continue
-                total += len(ra)
-                equal += sum(1 for p, q in zip(ra, rb, strict=True) if p == q)
-            if total > 2000 and equal / total > best[0]:
-                best = (equal / total, dx, dy)
+    order = sorted(dxs, key=lambda d: min((abs(d - p) for p in prefer), default=0))
+    for dy in sorted(dys, key=abs):
+        for dx in order:
+            w = window(a, b, dx, dy)
+            if w is None or w[1].size < 4000:
+                continue
+            share = float((w[1][::3] == w[2][::3]).mean())
+            if share > best[0]:
+                best = (share, dx, dy)
     return best
 
 
 def stats(a, b, dx, dy, mask=None):
-    """Equal share of pixels and of rows over the overlap; `mask(y, x)` limits the pixels."""
-    equal = total = rows_equal = rows = 0
+    """Equal share of pixels and of rows, and the first differing pixel (row, col in a's
+    coordinates). `mask` is a boolean array over `a` limiting the pixels counted."""
+    w = window(a, b, dx, dy)
+    if w is None:
+        return 0.0, 0.0, None, 0
+    (y0, x0), wa, wb = w
+    keep = (
+        np.ones(wa.shape, bool)
+        if mask is None
+        else mask[y0 : y0 + wa.shape[0], x0 : x0 + wa.shape[1]]
+    )
+    equal = (wa == wb) & keep
+    total = int(keep.sum())
+    rows = keep.any(axis=1)
+    rows_equal = ((wa == wb) | ~keep).all(axis=1) & rows
+    differ = np.argwhere(keep & (wa != wb))
     first = None
-    for y, x0, ra, rb in overlap(a, b, dx, dy):
-        row_total = row_equal = 0
-        for i, (p, q) in enumerate(zip(ra, rb, strict=True)):
-            if mask is not None and not mask(y, x0 + i):
-                continue
-            row_total += 1
-            if p == q:
-                row_equal += 1
-            elif first is None:
-                first = (y, x0 + i, p, q)
-        total += row_total
-        equal += row_equal
-        if row_total:
-            rows += 1
-            rows_equal += row_equal == row_total
-    return equal / max(total, 1), rows_equal / max(rows, 1), first, total
+    if len(differ):
+        y, x = differ[0]
+        first = (y + y0, x + x0, int(wa[y, x]), int(wb[y, x]))
+    return (
+        float(equal.sum()) / max(total, 1),
+        float(rows_equal.sum()) / max(int(rows.sum()), 1),
+        first,
+        total,
+    )
 
 
-def load_window(d: Path, stem: str):
-    found = {}
-    for path in sorted(d.glob(f"{stem}_*.png")):
-        found[int(path.stem.rsplit("_", 1)[1])] = nine_bit(path)
-    return found
+def load_window(d: Path, stem: str) -> dict[int, np.ndarray]:
+    return {
+        int(p.stem.rsplit("_", 1)[1]): nine_bit(p) for p in sorted(d.glob(f"{stem}_[0-9]*.png"))
+    }
+
+
+def ours_array(rows) -> np.ndarray:
+    return np.array(rows, dtype=np.uint16)
+
+
+def best_frame(frames, target, dxs, dys, prefer=()):
+    return max(
+        ((best_alignment(pic, target, dxs, dys, prefer), n) for n, pic in frames.items()),
+        key=lambda t: t[0][0],
+    )
 
 
 def main() -> int:
-    """m2_compare.py REFDIR OURS.pkl [FRAME]: the pictures of m2_refs.py against ours."""
     refs = Path(sys.argv[1])
-    ours_data = pickle.loads(Path(sys.argv[2]).read_bytes())
-    ours = ours_data["rows"]
-    name = Path(sys.argv[2]).stem
+    ours = ours_array(pickle.loads(Path(sys.argv[2]).read_bytes())["rows"])
     mesen = load_window(refs, "mesen_ns")
     beetle = load_window(refs, "beetle")
-    out = [f"{refs.parent.name}  ({name}, {len(ours[0])} dots a row)"]
-    dxs = range(-80, 140)
-    # A: the best Mesen2 frame (sprites disabled) against ours
-    best = max(
-        ((best_alignment(pic, ours, dxs, range(-3, 4)), n) for n, pic in mesen.items()),
-        key=lambda t: t[0][0],
-    )
-    (_, dx_m, dy_m), n_m = best
-    px, rows, first, total = stats(mesen[n_m], ours, dx_m, dy_m)
+    full = load_window(refs, "mesen")
+    dxs, dys = range(-80, 140), range(-3, 4)
+    out = [f"{refs.parent.name}  ({Path(sys.argv[2]).stem}, {ours.shape[1]} dots a row)"]
+
+    (_, dx, dy), n_m = best_frame(mesen, ours, dxs, dys, (14, 24))
+    px, rows, first, total = stats(mesen[n_m], ours, dx, dy)
     out.append(
-        f"A mesen(no sprites) frame {n_m} vs ours: dx {dx_m:+d} dy {dy_m:+d}: "
+        f"A mesen(no sprites) frame {n_m} vs ours: dx {dx:+d} dy {dy:+d}: "
         f"px {px:.4f} rows {rows:.4f} of {total} px"
     )
     if first:
         out.append(
             f"   first differing pixel: row {first[0]} col {first[1]}: mesen {first[2]:#05x} ours {first[3]:#05x}"
         )
-    # B: the best Beetle frame (sprites on) against ours; C: only where Beetle equals Mesen2
-    best_b = max(
-        ((best_alignment(pic, ours, dxs, range(-3, 4)), n) for n, pic in beetle.items()),
-        key=lambda t: t[0][0],
-    )
-    (_, dx_b, dy_b), n_b = best_b
+
+    (_, dx_b, dy_b), n_b = best_frame(beetle, ours, dxs, dys, (32, 46))
     px_b, rows_b, _first_b, _ = stats(beetle[n_b], ours, dx_b, dy_b)
     out.append(
         f"B beetle frame {n_b} vs ours: dx {dx_b:+d} dy {dy_b:+d}: px {px_b:.4f} rows {rows_b:.4f}"
     )
-    # the Beetle frame / Mesen2 frame pair that agrees most, as the two detectors' own agreement
-    pair = max(
-        (
-            (best_alignment(mp, bp, range(-40, 40), range(-3, 4)), nb, nm)
-            for nb, bp in beetle.items()
-            for nm, mp in mesen.items()
-            if abs(nb - nm) <= 6
-        ),
-        key=lambda t: t[0][0],
-    )
-    (_, dxb, dyb), nb, nm = pair
-    px_d, rows_d, first_d, _ = stats(mesen[nm], beetle[nb], dxb, dyb)
+
+    def best_pair(mesen_frames):
+        return max(
+            (
+                (best_alignment(mp, bp, range(-40, 40), range(-3, 4), (-18, -22)), nb, nm)
+                for nb, bp in beetle.items()
+                for nm, mp in mesen_frames.items()
+                if abs(nb - nm) <= 6
+            ),
+            key=lambda t: t[0][0],
+        )
+
+    (_, dxd, dyd), nb, nm = best_pair(mesen)
+    px_d, rows_d, first_d, _ = stats(mesen[nm], beetle[nb], dxd, dyd)
     out.append(
-        f"D mesen(no sprites) {nm} vs beetle {nb}: dx {dxb:+d} dy {dyb:+d}: px {px_d:.4f} rows {rows_d:.4f}"
+        f"D mesen(no sprites) {nm} vs beetle {nb}: dx {dxd:+d} dy {dyd:+d}: px {px_d:.4f} rows {rows_d:.4f}"
     )
     if first_d:
         out.append(
             f"   first differing pixel: row {first_d[0]} col {first_d[1]}: mesen {first_d[2]:#05x} beetle {first_d[3]:#05x}"
         )
 
-    def agree(y, x):  # (y, x) in Beetle coordinates: Beetle equals Mesen2 at the pair's frames
-        ym, xm = y - dyb, x - dxb
-        mp = mesen[nm]
-        return 0 <= ym < len(mp) and 0 <= xm < len(mp[0]) and mp[ym][xm] == beetle[nb][y][x]
-
-    px_c, rows_c, first_c, total_c = stats(
-        beetle[nb], ours, *best_alignment(beetle[nb], ours, dxs, range(-3, 4))[1:], mask=agree
+    # C: Beetle's pixels that equal Mesen2's (sprites off), against ours, in Beetle coordinates:
+    # Beetle's frame nearest ours (B), and Mesen2's frame (within 6) nearest that Beetle frame
+    nb = n_b
+    (_, dxd, dyd), nm = max(
+        (
+            (best_alignment(mp, beetle[nb], range(-40, 40), range(-3, 4), (-18, -22)), nm_)
+            for nm_, mp in mesen.items()
+            if abs(nb - nm_) <= 6
+        ),
+        key=lambda t: t[0][0],
     )
+    bpic, mpic = beetle[nb], mesen[nm]
+    w = window(mpic, bpic, dxd, dyd)
+    agree = np.zeros(bpic.shape, bool)
+    if w is not None:
+        (y0, x0), wm, wbp = w
+        agree[y0 + dyd : y0 + dyd + wm.shape[0], x0 + dxd : x0 + dxd + wm.shape[1]] = wm == wbp
+    (_, dxc, dyc), _n_c = best_frame({nb: bpic}, ours, dxs, dys, (32, 46))
+    px_c, rows_c, first_c, total_c = stats(bpic, ours, dxc, dyc, mask=agree)
     out.append(
         f"C ours vs beetle {nb} where it equals mesen {nm}: px {px_c:.4f} rows {rows_c:.4f} of {total_c} px"
     )
@@ -170,33 +184,23 @@ def main() -> int:
         out.append(
             f"   first differing pixel: row {first_c[0]} col {first_c[1]}: beetle {first_c[2]:#05x} ours {first_c[3]:#05x}"
         )
-    # E: the two detectors as they ship (Mesen2 with sprites, Beetle): where they differ
-    full = load_window(refs, "mesen")
+
     if full:
-        pair_e = max(
-            (
-                (best_alignment(mp, bp, range(-40, 40), range(-3, 4)), nb, nm)
-                for nb, bp in beetle.items()
-                for nm, mp in full.items()
-                if abs(nb - nm) <= 6
-            ),
-            key=lambda t: t[0][0],
-        )
-        (_, dxe, dye), nbe, nme = pair_e
+        (_, dxe, dye), nbe, nme = best_pair(full)
         px_e, rows_e, first_e, _ = stats(full[nme], beetle[nbe], dxe, dye)
         out.append(
-            f"E mesen(sprites) {nme} vs beetle {nbe}: dx {dxe:+d} dy {dye:+d}: "
-            f"px {px_e:.4f} rows {rows_e:.4f}"
+            f"E mesen(sprites) {nme} vs beetle {nbe}: dx {dxe:+d} dy {dye:+d}: px {px_e:.4f} rows {rows_e:.4f}"
         )
         if first_e:
             y, x = first_e[0], first_e[1]
-            ns = mesen.get(nme)
-            kind = "a sprite pixel (Mesen2 shows it only with sprites on)"
-            if ns is not None and ns[y][x] == full[nme][y][x]:
-                kind = "a BACKGROUND pixel: the detectors disagree on the background"
+            kind = "a pixel Mesen2 draws only with sprites on (a sprite)"
+            if nme in mesen and mesen[nme][y, x] == full[nme][y, x]:
+                kind = (
+                    "background in Mesen2 (the same with its sprites off); Beetle shows another "
+                    "value there: a Beetle sprite or a background difference"
+                )
             out.append(
-                f"   first differing pixel: row {y} col {x}: mesen {first_e[2]:#05x} "
-                f"beetle {first_e[3]:#05x}: {kind}"
+                f"   first differing pixel: row {y} col {x}: mesen {first_e[2]:#05x} beetle {first_e[3]:#05x}: {kind}"
             )
     print("\n".join(out))
     return 0

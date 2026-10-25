@@ -135,3 +135,15 @@ def test_raster_146_interrupts_at_line_24_of_the_next_frame():
     when = step_until(board, lambda: board.vdc.status & r.RR)
     frame_line = divmod(when, LINE_CLOCKS)[0] - 263 * 2  # lines since the start of frame 2
     assert frame_line == 24 and divmod(when, LINE_CLOCKS)[1] < 237
+
+
+def test_a_negative_vblank_position_raises_the_flag_before_the_sync_ends():
+    """The fit to Covell's photographs puts the flag about 8 dots before the sync ends (U19)."""
+    board = Board(FIXED_263, vblank_dots=-8)
+    cpu = ScriptedCpu(board, high_speed=True)
+    standard_display(cpu, cr=0x00C8 | 0x0004)
+    board.advance(LINE_CLOCKS * 263)
+    board.vdc.status = 0
+    when = step_until(board, lambda: board.vdc.status & r.VD, step=1)
+    _, offset = line_and_offset(board, when)
+    assert offset == 237 - 8 * 4

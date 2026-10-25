@@ -6,7 +6,10 @@ yet: the split sits 6-10 dots right of the photographed position (docs/m1-record
 "within one cycle of the photographs" is NOT claimed. The offsets are pinned
 here as a regression record, not as a pass of the exit.
 
-Needs the test ROM (scripts/fetch_references.py) and the pinned core.
+Needs the test ROM (scripts/fetch_references.py) and the pinned core. The band is the coarse
+regression of M1's registration through Mednafen's screenshot; `scripts/covell_calibrate.py` is the
+measurement anchored on the test's own text (docs/m1-record.md, "Calibration with the
+background").
 """
 
 import json

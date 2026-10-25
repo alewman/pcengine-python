@@ -136,6 +136,7 @@ hardware unless noted):
 | U21 | Where inside a CPU cycle a device sees the access; where the VDC/VCE stretch cycle goes | Covell photographs (tier 1) | built as "base cycle, access, stretch"; to be placed by the photographs |
 | U22 | Dot positions of the VDC's line events (display start, vblank test, line-counter step) | emulators (tier 5) | Mednafen's, in master clocks |
 | U23 | Reads of the mirrored half of VRAM | pcetech: "sometimes corrupted" | return 0 |
+| U25 | VRAM -> VRAM DMA speed and when it may run | emulators (tier 5): two dots a word; paused during the display | built that way (M2) |
 | U24 | Delay from the timer's enabling write to its first tick | the prescaler reset is tier 3 (HuC6280 manual 2.7); the delay is not published | one period (MAME, Mednafen) |
 
 **Conflicts** (sources disagree; C-number = the label used in the other documents):
@@ -148,9 +149,10 @@ hardware unless noted):
 | C4 | the VDC/VCE access penalty | MacDonald: +1 cycle on every VDC and VCE access; ares: only VDC, only outside burst mode; Mednafen: statistical VRAM penalty; MAME: `ST0-2` cost 4+1 | implement MacDonald's, flag it; provisional |
 | C5 | dots per line | MacDonald "roughly 342" in 5 MHz mode; 1365 / 4 = 341.25 | a line is 1365 master clocks; dot counts are derived |
 | C6 | I/O port D7 polarity | pcetech §4: 1 = CD unit **not** attached; sgxtech: "bit 7 = 1 if a device is connected" | the same author twice; follow pcetech (the wiki's K7 text is silent); verify with the BIOS |
-| C7 | VRAM-VRAM DMA over an active period | Hudson manual: remainder is **not** transferred in the next blanking; MacDonald: halted and resumed | decide at M2 by the detectors; manual is tier 3, MacDonald tier 2 |
+| C7 | VRAM-VRAM DMA over an active period | Hudson manual: remainder is **not** transferred in the next blanking; MacDonald: halted and resumed | decide at M2 by the detectors; manual is tier 3, MacDonald tier 2 | **Decided at M2: resume** (MacDonald tier 2 and Mesen2; `Board(dma_resumes=False)` is the manual's reading); no title of the first ten exercises it |
 | C8 | the VCE's modes | Hudson manual: ratios 4 and 3 only, no line bit; MacDonald and all emulators: a divide-by-2 (10 MHz) mode exists | the manual describes the original chip; follow MacDonald |
 | C9 | line-counter step pending at the vertical sync | Mednafen drops it; pcetech 5.1's 263-value RCR range needs it | take it (tier 2 over 5) |
+| C11 | an interrupt polled one cycle early whose source is gone at entry (`CLI; STZ $1403`) | core issue 0002: the core vectors to IRQ2; Mesen2 drops the timer case and takes the VDC case; After Burner II needs one of them | undecidable here (tier 5); the board runs with the core's default, the experiment is `m2_ours.py --drop-vanished-irq` |
 | C10 | multitap read with CLR high after the reset write | pcetech: pad 1's directions; pce-devel port table: 0 | pcetech's, switchable |
 
 ## Open decisions for Aubrey (each with my recommendation)

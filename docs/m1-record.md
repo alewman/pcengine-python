@@ -1,7 +1,9 @@
 # Milestone 1 record: what is built, what judges it, what is provisional
 
-Status (2026-10-24): **the board is built, pinned to the core and green; M1's two core-dependent
-judges were run and the exit does NOT hold, so M1 stays open.** The core is huc6280-python
+Status (2026-10-24, updated after M2): **the board is built, pinned to the core and green; M1's
+two core-dependent judges were run and the exit does NOT hold, so M1 stays open.** M2's first
+background picture calibrated Covell's absolute positions ("Calibration with the background"
+below): the offset did not close. The core is huc6280-python
 `143eb29` (rungs 0-5, pinned in `pyproject.toml` by git commit); 149 tests pass on CPython 3.14 and
 PyPy 3.11 (`tests/test_core_wiring.py` uses the real core; `tests/test_covell.py` is `slow`).
 Details: "The two judges" below.
@@ -73,6 +75,34 @@ the text, so the numbers carry about 1.2 dots of photographic error):
   dots of the hardware's (6-cycle group worst); one high-speed cycle is 0.75 dot and the photographs
   carry 1.2 dots of error, so the data neither prove nor refute one-cycle agreement.
 - Block-transfer and VRAM X-cycle rows were not measured (provisional, U1/U20).
+
+### Calibration with the background (M2, 2026-10-24)
+
+M1 could not place the photographs' columns on our raster (they were registered through Mednafen's
+screenshot). With the background layer drawn, the heading's left edge and the HuCard icon's right
+edge are the same two features in our picture and in each photograph, so a photograph column
+converts to our dots with its own scale (1.252-1.254 photograph px per dot) and offset, no
+emulator in between (`scripts/covell_calibrate.py`). Also corrected: the board starts in **RAM**
+mode ("Running in RAM"), so M1's table paired our RAM-mode screens with the ROM-mode photographs;
+the pairs below are like with like. Differences are ours minus the hardware, in dots (one
+high-speed cycle is 0.75 dot, the photographs carry about 1.2 dots of error):
+
+| Vblank test | RAM mode, groups 2-8 | ROM mode, groups 2-8 |
+| --- | --- | --- |
+| 0 dots after the sync (the accepted default) | +7.4, +7.0, +11.0, +11.4, +10.2, +8.0, +9.8 | +12.6, +11.0, +8.4, +12.2, +11.2, +11.6, +8.8 |
+| -8 dots (before the sync ends) | +1.4, +1.0, +5.0, -0.6, +4.2, +2.0, +3.8 | +6.6, +5.0, +2.4, +6.2, +5.2, -0.4, +2.8 |
+
+So **the offset moves with the vblank position and does not close**: the test measures the
+vblank flag's time to a few dots, and the photographs fit best with it about 8 dots *before* the
+end of the horizontal sync (a negative `vblank_dots`, now supported); the default stays 0 (Aubrey's
+acceptance) and **the -8 fit is an open decision**. Even at -8 the groups' positions differ from
+the hardware's by -0.6 to +6.6 dots, and our groups spread over 4 dots where the photographs spread
+over 2.4: that is not "within one cycle" (0.75 dot). Variants tried on the RAM screens (vblank -8): a
+7-cycle interrupt entry (C3, MAME's) gives +0.4 to +4.8 (a smaller spread, a different mean); no
+VCE access stretch gives -5.6 to -11.6. None isolates the cause: the groups differ by the length
+of the ROM's wait loop, so the quantum of the interrupt's entry, and the entry's length (C3) and
+poll point (U21) are the suspects. **M1's exit cannot close** on Covell's criterion; what holds
+(vertical splits, instruction timing walking nowhere) is recorded above.
 
 ### MAME instruction-stream lockstep (tier 5), `scripts/mame_lockstep.py`
 

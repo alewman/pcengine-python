@@ -136,6 +136,12 @@ what it receives: [sockets.md](sockets.md)). Outside the active area and when bo
 **overscan colour (sprite palette 0, colour 0)** shows; inside, the **backdrop (background palette 0,
 colour 0)**. Colour 0 of the other 15 palettes cannot be shown [hw].
 
+## As built (M2)
+
+The background, both DMAs and burst mode are built: [m2-record.md](m2-record.md) holds the
+decisions (C7 resumes; the SAT transfer's 1024 dots; the scroll latches' positions) and the
+pictures that judge them. The board draws a line when its display width begins.
+
 ## What the board must model, and at what grain
 
 - Per **character cycle (8 dots)** is the natural grid for the CPU window and the BAT/CG/sprite
