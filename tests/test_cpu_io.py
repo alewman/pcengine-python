@@ -247,3 +247,29 @@ def test_output_port_keeps_the_upper_bits_for_the_supergrafx_s_exp_port():
     io, _ = make_io()
     io.write(0x1000, 0xFC, 0)
     assert io.port.latch == 0xFC and not io.port.sel
+
+
+def test_timer_prescaler_restarts_every_time_it_is_enabled_manual_2_7():
+    """[mfr 2.7] 'When 0 is written in the Timer Start/Stop flag, the timer stops and the prescaler
+    is reset'; the counter loads when the flag goes 0 -> 1: a stop and a start restart the
+    first period whatever the phase of the old one."""
+    io, _ = make_io()
+    io.write(0x0C00, 1, 0)
+    io.write(0x0C01, 1, 0)
+    io.catch_up(TICK_CLOCKS - 1)  # nearly a whole tick in
+    io.write(0x0C01, 0, TICK_CLOCKS - 1)  # stop: the prescaler resets
+    io.write(0x0C01, 1, 5 * TICK_CLOCKS)  # start: a whole tick again, not the remainder
+    assert io.timer.count == 1
+    io.catch_up(6 * TICK_CLOCKS - 1)
+    assert io.timer.count == 1
+    io.catch_up(6 * TICK_CLOCKS)
+    assert io.timer.count == 0
+    assert io.next_event() == 7 * TICK_CLOCKS
+
+
+def test_enabling_an_enabled_timer_does_not_restart_it():
+    io, _ = make_io()
+    io.write(0x0C00, 3, 0)
+    io.write(0x0C01, 1, 0)
+    io.write(0x0C01, 1, TICK_CLOCKS + 100)  # 1 -> 1: not a 0 -> 1 change
+    assert io.timer.count == 2  # one tick has passed and nothing was reloaded

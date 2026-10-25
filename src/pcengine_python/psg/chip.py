@@ -18,8 +18,9 @@ therefore reads ch 2's sample *before* ch 2 advances in the same step.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
+from types import MappingProxyType
 
 PSG_CLOCK_DIVIDER = 6  # master clocks per step [pcetech 2.4]
 NOISE_TAPS = (0, 1, 11, 12, 17)  # [emu: MAME and Mednafen agree; MacDonald's research] U6
@@ -38,6 +39,7 @@ class Channel:
     counter: int = 1  # steps until the waveform index advances
     noise_counter: int = 1
     lfsr: int = 1
+    override: int | None = None  # C16: a sample forced by an R6 write until the next address step
 
     @property
     def on(self) -> bool:
@@ -49,9 +51,38 @@ class Channel:
 
 
 class Psg:
+    # The points on which the manual and pcetech are silent or the two readable emulators differ
+    # (docs/m4-record.md, C13-C23). Each default below follows the manual or pcetech where they
+    # speak, else the larger share of the sources; `VARIANTS` flips them to one emulator's way.
     #: C13: data written to R6 while a channel is ON and not DDA. pcetech: ignored, the index does
     #: not move. MAME and Mednafen store it in the waveform. True follows the two emulators.
     write_wave_while_playing = False
+    #: C16: R6 in DDA mode loads the DAC latch: the manual says whenever DDA is set (also with the
+    #: channel off); Mednafen only with the channel on, and it also lets an R6 write while playing
+    #: override the sample until the next address step ("tested on a SuperGrafx").
+    dda_latch_needs_on = False
+    r6_overrides_sample_while_on = False
+    #: C22: what key-on (ON 0 -> 1) does to a waveform channel. "reload": the counter restarts
+    #: from F, the address stays (MAME). "resume_step": the counter resumes where it stopped and
+    #: the address steps once (Mednafen). Neither is in the manual.
+    keyon_mode = "reload"
+    #: C18: the LFO acts only when channel 2 is on (manual); MAME modulates whatever channel 2 is.
+    lfo_requires_ch2_on = True
+    #: C19: the LFO frequency register 0: 256 (Mednafen) or 1 (MAME's zero-length counter).
+    lfo_zero_multiplier = 256
+    #: U6: the modulated frequency wraps in 12 bits (Mednafen) or not (MAME).
+    lfo_mask12 = True
+    #: C23: LF TRG (R9 bit 7) halts channel 2 whatever LF CTL holds (Mednafen); MAME only with LF
+    #: CTL non-zero.
+    lf_trg_halts_always = True
+    #: C15: R1/R5's table: the manual says 3 dB a step; both emulators share a table in which the
+    #: step from 7 to 8 is 1.5 dB and from 8 to 9 4.5 dB (index 8 costs 15 units, not 14).
+    scale_table_quirk = False
+    #: C14: attenuation at which a channel goes silent, in 1.5 dB units. The manual: 45 dB (30).
+    #: Both emulators keep a 31st step (46.5 dB) that is still audible.
+    silent_units = 30
+    #: False skips the host-rate output (the step stream and the listeners are unaffected).
+    render_audio = True
     #: C17: noise frequency NF' = 0 ("undefined" in the manual). MAME clocks the shift register
     #: every step; Mednafen every 32. 32 here.
     noise_zero_period = 32
@@ -70,7 +101,7 @@ class Psg:
         # host-rate output (a box average of the step stream; outside the reference path)
         self.rate_hz = rate_hz
         self.gain = 1.0
-        self._levels = [10 ** (-1.5 * u / 20) if u < SILENT_UNITS else 0.0 for u in range(64)]
+        self._levels = [10 ** (-1.5 * u / 20) if u < self.silent_units else 0.0 for u in range(64)]
         self._acc = [0.0, 0.0]
         self._acc_steps = 0.0
         self._phase = 0.0
@@ -86,7 +117,9 @@ class Psg:
 
     def _lfo_modulating(self) -> bool:
         """[mfr 2.1.10 note] the LFO acts only when channel 1 and 2 are both on; LF TRG halts it."""
-        return bool(self.lfo_control & 3) and self.channels[1].on and not self.lfo_control & 0x80
+        if not self.lfo_control & 3 or self.lfo_control & 0x80:
+            return False
+        return self.channels[1].on or not self.lfo_requires_ch2_on
 
     def _period(self, ch: int) -> int:
         channel = self.channels[ch]
@@ -94,9 +127,11 @@ class Psg:
         if ch == 0 and self._lfo_modulating():
             shift = ((self.lfo_control & 3) - 1) * 2  # 0, 2, 4 [mfr 2.1.10]
             modulation = self.channels[1].wave[self.channels[1].index] - 16  # [mfr table]
-            frequency = (channel.frequency + (modulation << shift)) & 0xFFF or 4096  # U6: 12 bits
+            frequency = channel.frequency + (modulation << shift)
+            frequency = (frequency & 0xFFF or 4096) if self.lfo_mask12 else max(frequency, 1)
         elif ch == 1 and self.lfo_control & 3:
-            frequency *= self.lfo_frequency or 256  # [mfr 2.2.2] f_LFO = fmaster / (2x32xF2xFLF)
+            # [mfr 2.2.2] f_LFO = fmaster / (2x32xF2xFLF)
+            frequency *= self.lfo_frequency or self.lfo_zero_multiplier
         return frequency
 
     def _set_noise_period(self, ch: int) -> None:
@@ -109,7 +144,13 @@ class Psg:
         channel = self.channels[ch]
         main = (self.balance >> (4 if side == 0 else 0)) & 0xF
         pan = (channel.balance >> (4 if side == 0 else 0)) & 0xF
-        return 2 * (15 - main) + (31 - (channel.control & 0x1F)) + 2 * (15 - pan)
+        return self._scale(main) + (31 - (channel.control & 0x1F)) + self._scale(pan)
+
+    def _scale(self, nibble: int) -> int:
+        """Units below the maximum for an R1/R5 nibble: 2 a step, 30 for 0 [mfr 2.1.2, 2.1.6]."""
+        if self.scale_table_quirk:
+            return 31 - (0, 3, 5, 7, 9, 11, 13, 15, 16, 19, 21, 23, 25, 27, 29, 31)[nibble]
+        return 2 * (15 - nibble)
 
     # -- the CPU's port ------------------------------------------------------------------------
 
@@ -163,18 +204,24 @@ class Psg:
         elif was_dda:
             channel.index = 0  # [pcetech 10] reset when DDA goes 1 -> 0
             channel.counter = self._period(ch)
-        if channel.on and not was_on:
-            # U28: the counter restarts from F at key-on (MAME); Mednafen also steps the index
-            channel.counter = self._period(ch)
+        if channel.on and not was_on and not channel.dda:
+            if self.keyon_mode == "reload":
+                channel.counter = self._period(ch)
+            else:
+                channel.index = (channel.index + 1) & 31
+        channel.override = None
 
     def _write_wave(self, channel: Channel, value: int) -> None:
         if channel.dda:
-            channel.latch = value  # [mfr 2.1.7 (3)] "data is transferred directly to the D/A"
+            if channel.on or not self.dda_latch_needs_on:
+                channel.latch = value  # [mfr 2.1.7 (3)] "data is transferred directly to the D/A"
         elif not channel.on:
             channel.wave[channel.index] = value  # [mfr 2.1.5] write data mode
             channel.index = (channel.index + 1) & 31
         elif self.write_wave_while_playing:
             channel.wave[channel.index] = value
+        if self.r6_overrides_sample_while_on and channel.on:
+            channel.override = value
 
     # -- running --------------------------------------------------------------------------------
 
@@ -189,6 +236,8 @@ class Psg:
                 sample = 31 if channel.lfsr & 1 else 0  # [mfr 2.1.8] noise overrides the wave
             elif channel.dda:
                 sample = channel.latch
+            elif channel.override is not None:
+                sample = channel.override
             else:
                 sample = channel.wave[channel.index]
             out.append((sample, self.attenuation(ch, 0), self.attenuation(ch, 1)))
@@ -220,7 +269,9 @@ class Psg:
         halts channel 2's counter (Mednafen: whatever the LF CTL bits)."""
         if not channel.on or channel.dda:
             return False
-        return not (ch == 1 and self.lfo_control & 0x80)
+        if ch == 1 and self.lfo_control & 0x80:
+            return not self.lf_trg_halts_always and not self.lfo_control & 3
+        return True
 
     def _tick(self, n: int, lfo: bool) -> None:
         # the modulating sample is read before channel 2 moves in the same step
@@ -230,10 +281,14 @@ class Psg:
                 channel.counter -= n
                 if channel.counter <= 0:
                     channel.index = (channel.index + 1) & 31
+                    channel.override = None
                     if ch == 0 and lfo:
                         shift = ((self.lfo_control & 3) - 1) * 2
-                        frequency = (channel.frequency + ((modulation - 16) << shift)) & 0xFFF
-                        channel.counter = frequency or 4096
+                        frequency = channel.frequency + ((modulation - 16) << shift)
+                        if self.lfo_mask12:
+                            channel.counter = frequency & 0xFFF or 4096
+                        else:
+                            channel.counter = max(frequency, 1)
                     else:
                         channel.counter = self._period(ch)
             if ch >= 4 and (self.noise_free_running or self._plays_noise(channel)):
@@ -250,6 +305,8 @@ class Psg:
     def _emit(self, n: int, snapshot: list[tuple[int, int, int]]) -> None:
         for listener in self.listeners:
             listener(n, snapshot)
+        if not self.render_audio:
+            return
         left = right = 0.0
         for sample, ul, ur in snapshot:
             if sample >= 0:
@@ -282,3 +339,37 @@ class Psg:
         self.advance_to(mclk // PSG_CLOCK_DIVIDER)
         out, self._out = self._out, []
         return out
+
+
+#: Each readable emulator's way on the disputed points, for scripts/psg_compare.py.
+VARIANTS: Mapping[str, Mapping[str, object]] = MappingProxyType(
+    {
+        "manual": {},
+        "mame": {
+            "write_wave_while_playing": True,
+            "noise_zero_period": 1,
+            "noise_free_running": False,
+            "keyon_mode": "reload",
+            "lfo_requires_ch2_on": False,
+            "lfo_zero_multiplier": 1,
+            "lfo_mask12": False,
+            "lf_trg_halts_always": False,
+            "scale_table_quirk": True,
+            "silent_units": 31,
+        },
+        "mednafen": {
+            "write_wave_while_playing": True,
+            "dda_latch_needs_on": True,
+            "r6_overrides_sample_while_on": True,
+            "noise_zero_period": 32,
+            "noise_free_running": True,
+            "keyon_mode": "resume_step",
+            "lfo_requires_ch2_on": True,
+            "lfo_zero_multiplier": 256,
+            "lfo_mask12": True,
+            "lf_trg_halts_always": True,
+            "scale_table_quirk": True,
+            "silent_units": 31,
+        },
+    }
+)

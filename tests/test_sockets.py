@@ -144,3 +144,26 @@ def test_instances_not_modules_two_boards_two_vdcs_do_not_share_state():
     v1.regs.value[5] = 1
     assert v2.regs.value[5] == 0
     assert Vce().palette is not Vce().palette
+
+
+def test_psg_writes_through_the_bus_reach_the_audio_source_list_with_their_time():
+    board = Board()
+    cpu = ScriptedCpu(board, high_speed=True)
+    base = 0x1FE800
+    cpu.write(base + 1, 0xFF)  # R1: main level
+    cpu.write(base + 0, 0x00)  # R0: channel 1
+    cpu.write(base + 4, 0x00)  # ON = 0, DDA = 0: write data mode
+    for value in [31] * 16 + [0] * 16:
+        cpu.write(base + 6, value)
+    cpu.write(base + 2, 0x20)
+    cpu.write(base + 3, 0x00)
+    cpu.write(base + 5, 0xFF)
+    cpu.write(base + 4, 0x9F)  # ON, full level
+    source = board.audio_sources[0]
+    assert source is board.psg
+    board.advance(3 * 21_477_272 // 100)  # about 30 ms
+    samples = source.take_samples(board.mclk)
+    assert 1200 <= len(samples) <= 1400  # 44.1 kHz
+    left = [s[0] for s in samples]
+    assert max(left) > 0 > min(left)  # a square wave about the centre
+    assert board.cpu_io.buffer.value == 0x9F  # the I/O buffer saw the last write

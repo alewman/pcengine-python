@@ -18,7 +18,8 @@ needs, every fact with its source and tier; [docs/handoff-brief.md](docs/handoff
 (8 milestones, 25 unknowns, 11 conflicts, 14 open decisions, all decided). **Milestone 2 (the
 background) holds**: the first ten titles are pixel-identical to Mesen2 and Beetle PCE at the
 9-bit palette value wherever there are no sprites ([docs/m2-record.md](docs/m2-record.md)). **Milestone 3 (sprites) holds** too: ten plus eight titles are
-identical to Mesen2 and Beetle with sprites on ([docs/m3-record.md](docs/m3-record.md)).
+identical to Mesen2 and Beetle with sprites on ([docs/m3-record.md](docs/m3-record.md)). **Milestone 4 (the PSG)**: the model reproduces MAME and Mednafen step for step with each
+referee's switches on five games ([docs/m4-record.md](docs/m4-record.md)); tier 5 only.
 
 Measured while gathering: MAME 0.285, Mesen2 (famicom-python's headless build,
 after setting the config the DLL lacks), Beetle PCE (Mednafen's core, built from the pinned tree) and

@@ -23,6 +23,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
+    # the PSG referee comparison (scripts/psg_compare.py, tests/test_psg_referees.py)
+    "numpy",
     # Pinned: `ruff format --check` must see the formatter the tree was formatted with.
     "ruff==0.16.8",
 ]

@@ -154,6 +154,7 @@ hardware unless noted):
 | C9 | line-counter step pending at the vertical sync | Mednafen drops it; pcetech 5.1's 263-value RCR range needs it | take it (tier 2 over 5) |
 | C11 | an interrupt polled one cycle early whose source is gone at entry (`CLI; STZ $1403`) | core issue 0002: the core vectors to IRQ2; Mesen2 drops the timer case and takes the VDC case; After Burner II needs one of them | undecidable here (tier 5); the board runs with the core's default, the experiment is `m2_ours.py --drop-vanished-irq` |
 | C10 | multitap read with CLR high after the reset write | pcetech: pad 1's directions; pce-devel port table: 0 | pcetech's, switchable |
+| C13-C24 | the PSG's disputed points: R6 data while playing (pcetech ignores, both emulators store), the 45 dB cut-off, the R1/R5 table, the DDA latch, noise NF = 0, LFO needing channel 2, the LFO register 0, the noise shift register running always or only while played, Mednafen's rotating volume latch, key-on (MAME reloads the counter, Mednafen steps the address), LF TRG, Mednafen's averaging at F <= 3 | docs/m4-record.md: the model's defaults follow the manual and pcetech; each referee's way is a named switch that reproduces it with 0 differences on five games | provisional, tier 5 |
 
 ## Open decisions for Aubrey (each with my recommendation)
 

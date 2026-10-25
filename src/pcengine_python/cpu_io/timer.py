@@ -6,13 +6,13 @@ asserted when the counter goes from 0 to $7F; at that moment it is reloaded from
 keeps counting, whether or not the interrupt has been acknowledged.
 
 [mfr: HuC6280 hardware manual 2.7] "When 0 is written in the Timer Start/Stop flag, the timer
-stops and the prescaler is reset", and the down-counter is loaded from the reload register
-when the flag goes from 0 to 1: so the prescaler's phase is the enabling write (tier 3). Not
-published (U24, provisional, emu tier 5): the exact delay from that write to the first tick;
-MAME and Mednafen both use one full period (3072 master clocks), as here. Mednafen reloads one
-master clock after the underflow, MAME at the underflow; this model reloads at the underflow
-(pcetech: "reloaded when it occurs"). The manual also cautions that the count can read invalid
-while it changes; that is not modelled.
+stops and the prescaler is reset", and the down-counter is loaded from the reload register when the
+flag goes from 0 to 1. So a tick is one full prescaler period (1024 cycles of master/3, 3072 master
+clocks) after the enabling write, and a stop and restart always begin a fresh period (U24, closed
+as far as the sources go: tier 3 for the reset, the full first period follows from it; what stays
+tier 5 is Mednafen's one-clock-late reload after an underflow, which MAME does not have, and
+this model follows pcetech 2.2's "reloaded when it occurs"). The manual also cautions that the
+count can read invalid while it changes; that is not modelled.
 """
 
 from __future__ import annotations

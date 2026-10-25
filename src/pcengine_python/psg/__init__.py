@@ -6,6 +6,6 @@ event-driven step stream for the reference comparisons, and a host-rate box-aver
 `AudioSource` list. Provisional, tier 5: no hardware audio reference exists (docs/m4-record.md).
 """
 
-from pcengine_python.psg.chip import Channel, Psg
+from pcengine_python.psg.chip import VARIANTS, Channel, Psg
 
-__all__ = ["Channel", "Psg"]
+__all__ = ["VARIANTS", "Channel", "Psg"]
