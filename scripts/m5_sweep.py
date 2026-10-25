@@ -62,12 +62,15 @@ def compare(ours_pkl: Path, refs: Path, target: int) -> dict:
     ours = cmp.ours_array(pickle.loads(ours_pkl.read_bytes())["rows"])
     dys = range(-2, 3)
     out: dict = {"target": target}
-    for name, stem, dxs in (("mesen", "mesen", (14, 24)), ("beetle", "beetle", (32, 46))):
+    # 5 and 7 MHz rows have known offsets (the tie-break prefers them); 10 MHz rows (682 dots)
+    # have their own, so the search covers every shift.
+    wide = range(-120, 200)
+    for name, stem, prefer in (("mesen", "mesen", (14, 24, 68)), ("beetle", "beetle", (32, 46))):
         pics = {n: p for n, p in cmp.load_window(refs, stem).items() if abs(n - target) <= WINDOW}
         if not pics:
             out[name] = None
             continue
-        (_, dx, dy), n = cmp.best_frame(pics, ours, dxs, dys, dxs)
+        (_, dx, dy), n = cmp.best_frame(pics, ours, wide, dys, prefer)
         px, rows, first, total = cmp.stats(pics[n], ours, dx, dy)
         out[name] = {"frame": n, "dx": dx, "dy": dy, "px": round(px, 4), "rows": round(rows, 4),
                      "first": first, "total": total}  # fmt: skip
@@ -118,6 +121,7 @@ def main() -> int:
     p.add_argument("scratch", type=Path)
     p.add_argument("results", type=Path)
     p.add_argument("--only", default="")
+    p.add_argument("--names", type=Path, help="file of card file names, one per line")
     p.add_argument("--jobs", type=int, default=6)
     p.add_argument("--cards", type=int, default=3, help="cards in parallel")
     a = p.parse_args()
@@ -127,6 +131,7 @@ def main() -> int:
     todo = sorted(
         c for c in a.lib.iterdir()
         if c.is_file() and c.suffix.lower() in IMAGE | {".7z", ".zip"} and a.only in c.name
+        and (a.names is None or c.name in set(a.names.read_text().splitlines()))
         and c.name not in done
     )  # fmt: skip
     a.scratch.mkdir(parents=True, exist_ok=True)

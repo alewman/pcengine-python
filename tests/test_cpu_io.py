@@ -273,3 +273,16 @@ def test_enabling_an_enabled_timer_does_not_restart_it():
     io.write(0x0C01, 1, 0)
     io.write(0x0C01, 1, TICK_CLOCKS + 100)  # 1 -> 1: not a 0 -> 1 change
     assert io.timer.count == 2  # one tick has passed and nothing was reloaded
+
+
+def test_c25_the_count_reads_7f_for_the_underflow_window_then_the_reload():
+    """C25 [emu, tier 5]: Battle Royale polls `$0C00` with latch 0 until it reads non-zero."""
+    io, _ = make_io()
+    io.write(0x0C00, 0, 0)
+    io.write(0x0C01, 1, 0)
+    assert io.read(0x0C00, TICK_CLOCKS - 1) == 0
+    assert io.read(0x0C00, TICK_CLOCKS) == 0x7F  # the underflow tick
+    assert io.read(0x0C00, TICK_CLOCKS + 14) == 0x7F
+    assert io.read(0x0C00, TICK_CLOCKS + 15) == 0  # reloaded from latch 0
+    io.timer.underflow_window_mclk = 0  # the first model: instant reload
+    assert io.read(0x0C00, 2 * TICK_CLOCKS) == 0
