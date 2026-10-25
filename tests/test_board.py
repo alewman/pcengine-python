@@ -108,7 +108,7 @@ def test_hardware_page_dispatch_by_block():
     cpu.write(HARDWARE_BASE + 0x0C00, 0x05)  # timer latch
     assert board.cpu_io.timer.latch == 5
     cpu.write(HARDWARE_BASE + 0x0805, 0x99)  # PSG R5 (selected channel 0)
-    assert board.psg.global_regs[5] == 0x99
+    assert board.psg.channels[0].balance == 0x99
     cpu.write(HARDWARE_BASE + 0x1402, 0x03)
     assert board.cpu_io.irq.disable == 3
     assert cpu.irq_disable == 3  # forwarded to the core for its gate

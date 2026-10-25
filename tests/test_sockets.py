@@ -139,7 +139,7 @@ def test_instances_not_modules_two_boards_two_vdcs_do_not_share_state():
     a.ram.data[3] = 9
     a.psg.write(1, 0xFF, 0)
     assert b.vdc.vram[5] == 0 and b.vce.palette[5] == 0 and b.ram.data[3] == 0
-    assert b.psg.global_regs[1] == 0
+    assert b.psg.balance == 0
     v1, v2 = Vdc(), Vdc()
     v1.regs.value[5] = 1
     assert v2.regs.value[5] == 0
