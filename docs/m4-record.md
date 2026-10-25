@@ -47,8 +47,8 @@ in its first 15 s).
 (`tests/test_psg_referees.py` repeats it on the excerpt, 3 M steps: 0 differences, both referees.)
 
 With **the manual's and pcetech's readings** (the model's defaults) the same windows differ from MAME in
-0 / 0 / 0 / 62,403 / 63,794 steps for four of the games and 1,038,273 steps (52 %) for Aero Blasters, and from Mednafen
-in 28-97 % of the steps. Which switch accounts for which steps, each reverted alone in the referee's
+0 steps (Alien Crush, Blazing Lazers), 62,403 (Bonk's Adventure), 63,794 (Samurai-Ghost) and 1,038,273 (52 %,
+Aero Blasters) of 2 M, and from Mednafen in 28-97 % of the steps. Which switch accounts for which steps, each reverted alone in the referee's
 variant (steps that then differ, of 2 M):
 
 | Switch | MAME | Mednafen |
