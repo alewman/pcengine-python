@@ -6,7 +6,8 @@ background picture calibrated Covell's absolute positions ("Calibration with the
 below): the offset did not close. The core is huc6280-python
 `143eb29` (rungs 0-5, pinned in `pyproject.toml` by git commit); 149 tests pass on CPython 3.14 and
 PyPy 3.11 (`tests/test_core_wiring.py` uses the real core; `tests/test_covell.py` is `slow`).
-Details: "The two judges" below.
+Details: "The two judges" below. Update 2026-10-24: the instruction-stream lockstep now closes
+against Mednafen (not MAME); the photograph criterion does not ("The same lockstep against Mednafen").
 
 ## Layout as built
 
@@ -130,6 +131,36 @@ instructions that agree exactly once C7 and C14 are overridden, and the three di
 
 Re-run on 2026-10-24 with the core at a379416 and the vblank default at -8: the same two stops
 (instruction 2, `CSH`; instruction 136,975 with C7 and C14 overridden); the default moved neither.
+
+### The same lockstep against Mednafen 1.32.1 (tier 5), 2026-10-24
+
+`scripts/lockstep.py mednafen` (the trace build of huc6280-python; method and the six-game runs in
+[m5-lockstep-record.md](m5-lockstep-record.md)); 2,100,000 instructions of the same ROM, core a379416.
+Mednafen takes the interrupt entry in 8 cycles (C3), applies `CSH` as the core does (C7) and pushes
+Y, A, X for block transfers (C14): **the board agrees with it on all three with no override**, where
+MAME needed three. What is left, in the order the run meets it:
+
+| Flags | First difference | Cause and tier |
+| --- | --- | --- |
+| none | instruction 0, S (`$00` against `$FF`) | Mednafen powers up with S = 0; random on hardware (U2) |
+| `--adopt-reset-s` | 136,994, the first vblank interrupt, 30 ticks (8 instructions) early | U19: the board's -8 dots (photograph fit, tier 1) against Mednafen's start of the display width, 24 dots later |
+| + `--vblank-dots mednafen` | 201,927, clock +14 ticks on `ST2` to the VDC data port | VDC wait state (U18/U20): Mednafen 19 ticks, the board 5 |
+| + `--adopt-io-waits` (36 waits, 14-32 ticks) | 290,925, the 7th interrupt, one instruction late | U21: the line rises exactly on an instruction boundary; Mednafen counts it visible |
+| + `--raster-shift 1` (1, 2 or 3 clocks) | **none in 2,100,000 instructions**, 54 entries | the tie rule of U21, less than one high-speed cycle |
+
+**Can M1's exit close?** The wording of the exit, "instruction-stream lockstep on the test ROM, 0
+unexplained", **can now be met against Mednafen**: every difference above has a name and a tier, and
+with the four overrides the 2.1 M-instruction stream, the 54 interrupt entries and every clock are
+equal. Against MAME it still cannot (three overrides and an unrepeatable fourth, above). What this
+does **not** show: that the board is right. A match to a tier-5 emulator is a detector result, and
+the position at which the two streams agree (vblank at Mednafen's start of the display width) is the
+one Covell's photographs say is too late, 24 dots from the -8 the board uses; the three overrides
+that matter for timing (vblank position, VDC waits, the 1-3 clock tie) are exactly the places where
+no tier 1-3 source speaks. **Covell's photographs remain the tier-1 criterion and that criterion
+still cannot close**: the groups still sit -0.6 to +6.6 dots from the hardware's with a spread of 4
+dots against the photographs' 2.4, and Mednafen, which has the vblank 24 dots later, cannot arbitrate.
+So: the lockstep half of the exit closes against Mednafen; the photograph half is unchanged and M1
+stays open on it.
 
 ### The brief's handoff checks
 

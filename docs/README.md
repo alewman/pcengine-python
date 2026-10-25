@@ -15,6 +15,7 @@ Read in this order.
 | [validation.md](validation.md) | Every oracle by tier with pins and provenance; what ran here; the detector comparison |
 | [mame-oracle.md](mame-oracle.md) | The verified MAME 0.285 recipe, output format, seven traps |
 | [handoff-brief.md](handoff-brief.md) | Decisions, the embedding contract for huc6280-python, 8 milestones with judges, U and C lists, 14 open decisions |
+| [m5-lockstep-record.md](m5-lockstep-record.md) | **Milestone 5, lockstep half**: the board against MAME and Mednafen instruction by instruction; the Covell ROM closes against Mednafen, six games' first differences named |
 | [m4-record.md](m4-record.md) | **Milestone 4 as built**: the PSG, the referee comparison (MAME, Mednafen), C13-C24, the timer finished |
 | [m3-record.md](m3-record.md) | **Milestone 3 as built**: sprites; 26 titles identical to both detectors with sprites on; the PixelPath cost measured |
 | [m2-record.md](m2-record.md) | **Milestone 2 as built**: the background, DMAs and burst mode; the first ten titles against Mesen2 and Beetle PCE; C7 decided |
