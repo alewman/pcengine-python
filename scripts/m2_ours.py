@@ -19,7 +19,7 @@ from pathlib import Path
 
 from pcengine_python import pads
 from pcengine_python.board import Board
-from pcengine_python.cards import RomCard
+from pcengine_python.cards import card_from_path
 from pcengine_python.machine import PC_ENGINE, TURBOGRAFX_16
 from pcengine_python.system import build
 
@@ -49,23 +49,30 @@ def main() -> int:
     p.add_argument("out", type=Path)
     p.add_argument("--frames", type=int, default=300)
     p.add_argument("--tg16", action="store_true")
+    p.add_argument("--then", type=int, default=0, help="keep running to this frame, save OUT-<n>.pkl")
     p.add_argument("--drop-vanished-irq", action="store_true", help="core issue 0002 experiment")
     a = p.parse_args()
     machine = TURBOGRAFX_16 if a.tg16 else PC_ENGINE
-    board = Board(machine, card=RomCard.from_path(a.card), pad=pads.Pad2())
+    board = Board(machine, card=card_from_path(a.card), pad=pads.Pad2())
     system = build(board, dropping_core() if a.drop_vanished_irq else None)
     began = time.monotonic()
-    for _ in range(a.frames):
-        system.run_frame()
-    frame = board.capture.last_frame
-    with a.out.open("wb") as f:
-        pickle.dump(
-            {"rows": frame.rows, "dividers": frame.dividers, "number": board.timeline.frame}, f
+    marks = [(a.frames, a.out)]
+    if a.then > a.frames:
+        marks.append((a.then, a.out.with_name(f"{a.out.stem}-{a.then}{a.out.suffix}")))
+    done = 0
+    for target, out in marks:
+        for _ in range(target - done):
+            system.run_frame()
+        done = target
+        frame = board.capture.last_frame
+        with out.open("wb") as f:
+            pickle.dump(
+                {"rows": frame.rows, "dividers": frame.dividers, "number": board.timeline.frame}, f
+            )
+        print(
+            f"{a.card.name}: {target} frames in {time.monotonic() - began:.1f} s, "
+            f"{len(frame.rows)} rows of {len(frame.rows[0])} dots, VCE control {board.vce.control:#04x}"
         )
-    print(
-        f"{a.card.name}: {a.frames} frames in {time.monotonic() - began:.1f} s, "
-        f"{len(frame.rows)} rows of {len(frame.rows[0])} dots, VCE control {board.vce.control:#04x}"
-    )
     return 0
 
 
