@@ -131,6 +131,22 @@ def main() -> int:
             f"   first differing pixel: row {first[0]} col {first[1]}: mesen {first[2]:#05x} ours {first[3]:#05x}"
         )
 
+    if full:  # M3: sprites on in both
+        (_, dx_f, dy_f), n_f = best_frame(full, ours, dxs, dys, (14, 24))
+        px_f, rows_f, first_f, total_f = stats(full[n_f], ours, dx_f, dy_f)
+        out.append(
+            f"F mesen(sprites on) frame {n_f} vs ours: dx {dx_f:+d} dy {dy_f:+d}: "
+            f"px {px_f:.4f} rows {rows_f:.4f} of {total_f} px"
+        )
+        if first_f:
+            wa, wb = window(full[n_f], ours, dx_f, dy_f)[1:]
+            bad = np.argwhere(wa != wb)
+            rows_bad = sorted({int(y) for y, _ in bad})
+            out.append(
+                f"   first differing pixel: row {first_f[0]} col {first_f[1]}: mesen {first_f[2]:#05x} "
+                f"ours {first_f[3]:#05x}; {len(bad)} px in {len(rows_bad)} rows, "
+                f"rows {rows_bad[0]}-{rows_bad[-1]}, cols {int(bad[:, 1].min())}-{int(bad[:, 1].max())}"
+            )
     (_, dx_b, dy_b), n_b = best_frame(beetle, ours, dxs, dys, (32, 46))
     px_b, rows_b, _first_b, _ = stats(beetle[n_b], ours, dx_b, dy_b)
     out.append(

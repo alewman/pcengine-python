@@ -62,4 +62,6 @@ def test_every_rom_group_draws_a_vertical_split_at_a_recorded_offset():
         assert len(xs) > 100
         assert xs[3 * len(xs) // 4] - xs[len(xs) // 4] <= 2  # vertical, like the photographs
         offset = statistics.median(xs) - 20 - hardware[group]  # in Mednafen columns
-        assert -3 <= offset <= 8  # a coarse band (M1's registration); -8 dots default, docs/m1-record.md
+        assert (
+            -3 <= offset <= 8
+        )  # a coarse band (M1's registration); -8 dots default, docs/m1-record.md
