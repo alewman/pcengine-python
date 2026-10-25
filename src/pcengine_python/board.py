@@ -55,7 +55,7 @@ class Board:
         power_on_seed: int | None = None,
         start_line: int = 0,
         start_offset: int = 0,
-        vblank_dots: int | None = 0,
+        vblank_dots: int | None = -8,
         vertical_at_line_start: bool = False,
         dma_resumes: bool = True,
     ) -> None:

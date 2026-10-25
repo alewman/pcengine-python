@@ -50,16 +50,16 @@ class Sequencer:
     def __init__(
         self,
         chip: _ChipSide,
-        vblank_dots: int | None = 0,
+        vblank_dots: int | None = -8,
         vertical_at_line_start: bool = False,
     ) -> None:
-        """`vblank_dots`: the vblank flag test happens this many dots after the sync ends.
+        """`vblank_dots`: the vblank flag test happens this many dots after the sync ends
+        (negative: before it ends).
 
-        Default 0, the start of the line, as MAME has it (U19; provisional). None is Mednafen's:
-        the start of the display width, 32 dots on for HDS = 2. Covell's photographs (tier 1)
-        say Mednafen's is too late: its splits sit about 25 dots right of the hardware's in the
-        same screens, and 0 recovers about 18 of them (docs/m1-record.md); the rest, and a
-        whole line either way, the photographs cannot settle."""
+        Default -8 (U19, provisional, tier 1): the position that fits Covell's hardware
+        photographs best, anchored on the test's own text (docs/m1-record.md): 0, MAME's, leaves
+        the splits 7-13 dots right of the hardware's; -8 leaves -0.6 to +6.6. None is Mednafen's,
+        the start of the display width (32 dots on for HDS = 2), which Covell calls too late."""
         self.chip = chip
         self.vblank_dots = vblank_dots
         # Experiment (MAME's `huc6270.cpp`): the vertical phase counters step as each line
@@ -104,6 +104,8 @@ class Sequencer:
                 self.chip.latch_bxr()
             elif kind == "leave":
                 self._leave_hsync()
+            elif kind == "collision":
+                self.chip.collision_hit()
             elif kind == "vblank":
                 self._vblank()
             elif kind == "hds":
@@ -153,6 +155,11 @@ class Sequencer:
         if self.vblank_dots is not None and self.vblank_dots >= 0:
             self._events.append((origin + HSYNC_CLOCKS + self.vblank_dots * divider, "vblank"))
             self._events.sort(key=lambda e: e[0])
+
+    def schedule(self, mclk: int, kind: str) -> None:
+        """Run `kind` at `mclk` (a time inside the current line)."""
+        self._events.append((mclk, kind))
+        self._events.sort(key=lambda e: e[0])
 
     def vsync(self) -> None:
         """The vertical sync starts (the last three lines of the VCE's frame).
@@ -217,6 +224,8 @@ class Sequencer:
         if not self.vertical_at_line_start:
             self._advance_vertical()
         self.chip.raster_test(self.rcr_count)
+        if self.vphase == VPhase.VDW and not self.burst_mode:
+            self.chip.fetch_sprites(self.rcr_count)  # for the line about to be drawn
 
     def _advance_vertical(self) -> None:
         self.vphase_counter -= 1
@@ -263,6 +272,10 @@ class _ChipSide(Protocol):
     def render_line(self) -> None: ...
 
     def line_counter_step(self, count: int) -> None: ...
+
+    def fetch_sprites(self, line: int) -> None: ...
+
+    def collision_hit(self) -> None: ...
 
     def display_started(self) -> None: ...
 

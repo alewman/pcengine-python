@@ -26,6 +26,7 @@ from collections.abc import Callable
 
 from pcengine_python.machine import HSYNC_CLOCKS
 from pcengine_python.vdc import regs as r
+from pcengine_python.vdc import sprites
 from pcengine_python.vdc.background import Background
 from pcengine_python.vdc.dma import DmaEngine
 from pcengine_python.vdc.sequencer import Sequencer, VPhase
@@ -44,7 +45,7 @@ class Vdc:
         *,
         hold: Callable[[int], None] = lambda clocks: None,
         power_on: random.Random | None = None,
-        vblank_dots: int | None = 0,
+        vblank_dots: int | None = -8,
         vertical_at_line_start: bool = False,
         dma_resumes: bool = True,
     ) -> None:
@@ -69,6 +70,7 @@ class Vdc:
         self._bg_x_offset = 0
         self._mwr_cache = 0  # MWR as the vertical sync latched it
         self._row: list[int] | None = None
+        self._sprite_entries: list[sprites.Entry] = []
         # A pending CPU VRAM access: ("w", address, word) or ("r", address, 0)
         self._pending_write: tuple[int, int] | None = None
         self._pending_read: int | None = None
@@ -154,6 +156,29 @@ class Vdc:
         self._step_bg_y()
         self._need_bg_y_step = True
 
+    def fetch_sprites(self, line: int) -> None:
+        """The scan for the next line's sprites, with the overflow flag and the narrow-display
+        budget (U3: Mesen2's: the VDC fetches 4, 4, 8 or 16 dots per entry between the end of
+        one line's display width and 16 dots before the next line's)."""
+        seq = self.seq
+        dots = 1365 // seq.divider
+        previous_end = (seq.active_end - seq.origin - HSYNC_CLOCKS) // seq.divider
+        next_start = dots + 8 + (self.regs.hds + 1) * 8 - 16
+        budget = (
+            max(0, next_start - previous_end)
+            // sprites.CLOCKS_PER_SPRITE[(self._mwr_cache >> 2) & 3]
+        )
+        entries, overflow = sprites.scan(
+            self.vram, VRAM_WORDS, self.sat, line, self._mwr_cache, limit=budget
+        )
+        self._sprite_entries = entries
+        if overflow and self.regs.cr & r.CR_OVERFLOW_IRQ:
+            self.status |= r.OR
+
+    def collision_hit(self) -> None:
+        if self.regs.cr & r.CR_COLLISION_IRQ:
+            self.status |= r.CR_FLAG
+
     def display_started(self) -> None:
         self.dma.display_started(self.now)
 
@@ -187,6 +212,13 @@ class Vdc:
             return
         end = min(first + width, dots)
         row[first:end] = pixels[: end - first]
+        if cr & 0x40 and self._sprite_entries:
+            hit = sprites.draw(self._sprite_entries, end - first, row, first)
+            if hit is not None and self.regs.cr & r.CR_COLLISION_IRQ:
+                # the flag rises when the beam reaches the pixel (Mesen2 runs the VDC per CPU cycle
+                # for this; Mednafen raises it as the line is drawn): U3
+                when = row_start + (first + hit) * seq.divider
+                seq.schedule(max(when, self.now), "collision")
 
     def commit_pending(self) -> None:
         if self._pending_write is not None:

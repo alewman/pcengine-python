@@ -73,8 +73,8 @@ def test_vblank_flag_rises_on_the_first_line_after_the_active_display():
     when = step_until(board, lambda: board.vdc.status & r.VD)
     line, offset = line_and_offset(board, when)
     assert line == 25 + 0xDF + 1  # 249: first line after VDW + 1 = 224 lines from line 25
-    # U19: the test happens as the sync ends (default 0 dots; Mednafen's is the display start)
-    assert abs(offset - 237) <= 4
+    # U19: the default is 8 dots before the sync ends (the fit to Covell's photographs)
+    assert abs(offset - (237 - 8 * 4)) <= 4
 
 
 def test_mednafen_vblank_position_is_the_start_of_the_display_width():
