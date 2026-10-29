@@ -293,6 +293,28 @@ def test_a_waiting_cpu_write_stays_busy_across_line_starts_until_the_satb_dma_en
     assert board.vdc.vram[0x300] == 0x1234
 
 
+def test_a_second_vram_write_holds_the_cpu_to_the_end_of_the_satb_dma():
+    """U30: the first CPU word is accepted (BSY) and the second waits for the transfer's end,
+    1024 dots after it began; Mednafen and Mesen2 both stall the CPU that way (the length is
+    where they differ: Mednafen resumes at the first VDC event after the end)."""
+    board, cpu = make(cr=0x0080)
+    vdc_reg(cpu, r.DCR, 0x0010)
+    vdc_reg(cpu, r.SATB, 0x0100)
+    while board.vdc.dma.sat_end is None:
+        board.advance(100)
+    vdc_reg(cpu, r.MAWR, 0x0300)
+    cpu.write(0x1FE000, 0x02)
+    cpu.write(0x1FE002, 0x11)
+    cpu.write(0x1FE003, 0x11)  # accepted
+    end = board.vdc.dma.sat_end
+    cpu.write(0x1FE002, 0x22)
+    cpu.write(0x1FE003, 0x22)  # waits
+    assert board.mclk >= end
+    assert board.mclk - end < 100  # released at the end, not a line later
+    assert board.vdc.vram[0x300] == 0x1111  # the first word was served when the transfer ended
+    assert board.vdc.vram[0x301] == 0x2222 or board.vdc.bsy
+
+
 @pytest.mark.parametrize("lines", [ACTIVE_LINES])
 def test_active_lines_constant(lines):
     assert lines == 242

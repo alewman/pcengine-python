@@ -66,3 +66,7 @@ base as a mode (docs/sockets.md) is not forced.
 | C12 | sprite CG bit: pcetech says it matters for MWR sprite width 2 or 3, the manual and both emulators for SM = 1 | SM = 1 (manual, tier 3) |
 | U26 | the sprite collision flag's time inside a line | at the pixel's dot (Mesen2's idea; Mednafen raises it as the line is drawn), tier 5 |
 | U27 | pattern reads past VRAM (pattern >= 512) | an empty sprite (Mesen2; the hardware reads garbage, pcetech) |
+
+Note (2026-10-29): this record's **U26** (the collision flag's time) shares its number with m2-record's
+U26 (when a DMA may run); the flag-time comparison across the four emulators is U35 and C29 in the
+[brief](handoff-brief.md), the sources in [vdc.md](vdc.md).

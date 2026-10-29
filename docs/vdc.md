@@ -154,3 +154,59 @@ pictures that judge them. The board draws a line when its display width begins.
   tier 1-2 source is found** (they are marked undecidable without hardware, per the no-hardware rule).
 - Instances, not module state: the SuperGrafx has two, PC-FX (post-1990, a possible later second
   consumer: it uses a HuC6270-family VDC) would pin this one.
+
+## CPU accesses behind a DMA, and the status flags: what each source says (2026-10-29)
+
+Done for the lockstep stops of [m5-lockstep-record.md](m5-lockstep-record.md); entries U30-U33 and
+C26-C29 in the [brief](handoff-brief.md). Nothing here is decided by a tier 1-3 source; the board's
+rule is stated first, then each source.
+
+**A. What a CPU VRAM access does while the sprite-table (SATB) or VRAM-to-VRAM DMA runs.**
+
+- *Board (as built)*: the first data access is accepted and BSY is set; the word is **served when the
+  transfer ends**, never earlier (since 2026-10-29: the display-width event used to serve it at the
+  next line start, which dropped BSY in the middle of the transfer; Bonk's Adventure, test
+  `test_a_waiting_cpu_write_stays_busy_across_line_starts_until_the_satb_dma_ends`); a *second* data
+  access (VWR or VRR MSB, MARR MSB) holds the CPU until then.
+- *Hudson manual (tier 3)*: silent on the CPU while a transfer runs. It says the SATB transfer is
+  "256 words ... at the beginning of a vertical blanking period", and for BSY: "the VRAM is being
+  accessed (read or written) in response to the CPU access".
+- *pcetech (tier 2)*: silent too: "Both VRAM to VRAM DMA and VRAM to SAT DMA can run at the same
+  time", "VRAM to VRAM DMA can only occur outside of the active display period"; BSY: "waiting for a
+  CPU access slot during the active display area" (5, status) and "waiting to read or write data
+  requested by the CPU when it accesses VRR/VWR".
+- *Mednafen* (`vdc.cpp`): `CheckAndCommitPending` (l.1419) commits only if `sat_dma_counter <= 0 &&
+  !DMARunning && !mystery_phase`; the first access is therefore pending (BSY) and the CPU is not
+  held; `DoWaitStates` (l.1262) holds it on the next VWR MSB write and on **every** data-port read
+  while BSY (l.1330). The wait is `WS_Hook(-1)` (vce.cpp l.53): it steals the time to the next VCE/VDC
+  event and repeats until the access commits, so the CPU is released **at the first event after the
+  end**, not at the end: After Burner II's loop is held 1,940 ticks for a transfer whose 1,024 dots
+  are 1,365 ticks at 5 MHz (traced with a patched copy: `SATSTART` 119,222, release 121,175). A wait
+  longer than 455 x 64 clocks in a frame is cut off and the transfer is "forced" complete with no
+  time charged.
+- *Mesen2* (`PceVdc.cpp`): `ProcessVramAccesses` (l.1000) refuses every access while
+  `SatbTransferRunning || _vramDmaRunning`; any write to MAWR, MARR or VWR (LSB too) and any VRR read
+  first calls `WaitForVramAccess` (l.1076, "Wonder Momo has graphical issues without this", "D&D Order
+  of the Griffon breaks without this"), which runs the CPU until the pending access is served. After
+  a queued access the VDC takes 4/6/7 (write) or 5/8/8 (read) exec ticks even in blanking
+  (`QueueMemoryWrite/Read`, "guesswork based on results from a test rom"): BSY is visible for them.
+- *MAME* (`huc6270.cpp`): no CPU wait, BSY is never set (the define is unused), the VRAM DMA is done
+  at once ("timing is incorrect") and the SATB copy happens at the vblank flag.
+
+**B. When the status bits are set.**
+
+| Bit | Board | Mednafen | Mesen2 | MAME |
+| --- | --- | --- | --- | --- |
+| BSY | an access is pending (slot wait in the display, a DMA, never otherwise) | pending: a DMA or the 16-dot window (U32) | pending, including 4-8 ticks after each access | never |
+| VD | first line after the display, dot -8 (U19) | start of the display width of that line | display start (HDS) of that line | `handle_vblank` (not traced here) |
+| DS | 1,024 dots after the display ends (3 lines at 5 MHz) | the same | the same, started at the vblank flag | 4 lines after the vblank flag |
+| DV | 2 dots a word | the same | the same | at once |
+| OR | at the sprite scan for the next line (line step) | the same | at the next line's display start (HDS) | at the sprite scan, only if enabled |
+| CR | when the beam reaches the colliding pixel (U35) | as the line is drawn | at the pixel | at the pixel |
+| clear | reading the status clears bits 5-0, not BSY | same | same | same |
+
+The lockstep compares every VDC and VCE read value with the ones Mednafen logged
+(`scripts/lockstep.py --check-reads`): in all six games every read, status values and BSY and the
+read buffer included, agrees up to the game's stop. The manual's other overflow causes ("some sprite
+pattern data cannot be fetched ... during a horizontal blanking period", "the CGX of some sprites")
+are the narrow-display budget of U3, not a separate flag rule.

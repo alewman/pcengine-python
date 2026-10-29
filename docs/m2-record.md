@@ -87,7 +87,9 @@ nine titles are identical with and without it. **C11**: which behaviour is the c
   dots later for HDS <= 2 (Mednafen's positions, tier 5); a register change after that shows on the
   next line, and the line is drawn in one go as the display width begins. A game that changes
   BXR/BYR mid-line differs from hardware by an unknown amount (none of the ten does).
-- **U25**: VRAM -> VRAM DMA speed, two dots a word (Mednafen and Mesen2 agree; tier 5).
+- **U25**: VRAM -> VRAM DMA speed, two dots a word (Mednafen and Mesen2 agree; tier 5). What the CPU
+  does behind a transfer, and the lockstep stops that named it, are U30-U33 ([vdc.md](vdc.md),
+  2026-10-29): the waiting word is served when the transfer ends, never at a line start (a fix).
 - **U26**: when a DMA may run: here, whenever the display is not drawing a line (Mesen2 starts at the
   vblank flag, Mednafen after the SAT transfer; tier 5).
 - **Burst mode** as Mednafen: decided once a frame from CR when the display period begins.
