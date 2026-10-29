@@ -267,6 +267,32 @@ def test_cpu_vram_access_waits_while_a_dma_runs():
     assert board.vdc.vram[0x800] == 0x1234
 
 
+def test_a_waiting_cpu_write_stays_busy_across_line_starts_until_the_satb_dma_ends():
+    """Manual and pcetech: BSY is set while the VDC has not yet served the CPU's VRAM access.
+    The board once committed the waiting word at the next line's display start although the
+    sprite-table transfer still held the VRAM (Bonk's Adventure: Mednafen BSY set, board clear;
+    Mednafen's CheckAndCommitPending commits nothing while a transfer runs)."""
+    board, cpu = make(cr=0x0080)
+    vdc_reg(cpu, r.DCR, 0x0010)
+    vdc_reg(cpu, r.SATB, 0x0100)
+    while board.vdc.dma.sat_end is None:
+        board.advance(100)
+    vdc_reg(cpu, r.MAWR, 0x0300)
+    cpu.write(0x1FE000, 0x02)
+    cpu.write(0x1FE002, 0x34)
+    cpu.write(0x1FE003, 0x12)  # accepted behind the transfer
+    assert board.vdc.bsy
+    board.advance(LINE_CLOCKS * 2)  # two line starts inside the 1024 dots
+    assert board.vdc.dma.sat_end is not None
+    assert board.vdc.bsy
+    assert cpu.read(0x1FE000) & r.BSY
+    assert board.vdc.vram[0x300] == 0
+    while board.vdc.dma.sat_end is not None:
+        board.advance(100)
+    assert not board.vdc.bsy
+    assert board.vdc.vram[0x300] == 0x1234
+
+
 @pytest.mark.parametrize("lines", [ACTIVE_LINES])
 def test_active_lines_constant(lines):
     assert lines == 242

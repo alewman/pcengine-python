@@ -220,6 +220,12 @@ class Vdc:
                 when = row_start + (first + hit) * seq.divider
                 seq.schedule(max(when, self.now), "collision")
 
+    def commit_unless_dma(self) -> None:
+        """Commit a waiting CPU access unless a transfer holds the VRAM (Mednafen's
+        `CheckAndCommitPending`: nothing is committed while the SAT or VRAM DMA runs)."""
+        if not self.dma.busy:
+            self.commit_pending()
+
     def commit_pending(self) -> None:
         if self._pending_write is not None:
             address, word = self._pending_write

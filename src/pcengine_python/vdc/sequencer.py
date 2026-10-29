@@ -196,7 +196,7 @@ class Sequencer:
         self.need_rcr_inc = True
         if self.vblank_dots is None and not self.vertical_at_line_start:
             self._vblank()
-        self.chip.commit_pending()
+        self.chip.commit_unless_dma()
 
     def _vblank(self) -> None:
         if self.vphase != VPhase.VDW and self.need_vb_irq_test:
@@ -264,6 +264,8 @@ class _ChipSide(Protocol):
     def raster_test(self, count: int) -> None: ...
 
     def commit_pending(self) -> None: ...
+
+    def commit_unless_dma(self) -> None: ...
 
     def latch_byr(self) -> None: ...
 
