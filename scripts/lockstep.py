@@ -74,6 +74,7 @@ class Line:
     beamy: int  # -1: the referee has no beam
     beamx: int
     mpr: tuple[int, ...]
+    reads: tuple[tuple[int, int], ...] = ()  # (address, value) of the VDC/VCE reads it made
 
     def regs(self) -> tuple[int, ...]:
         return (self.pc, self.a, self.x, self.y, self.s, self.p & ~B_FLAG, *self.mpr)
@@ -93,21 +94,35 @@ def read_mame(path: Path):
 
 
 def read_mednafen(path: Path):
-    pending = None
+    """Lines of the trace. The hardware-page reads logged after an instruction's line pair
+    (`[luaengine] R addr value`) are attached to it as `reads` (VDC and VCE addresses only)."""
+    first = None  # the instruction line, waiting for its MPR line
+    cur = None  # the complete Line, collecting the reads that follow
+    reads: list[tuple[int, int]] = []
     with path.open("rb") as log:
         for raw in log:
             c = raw[:1]
             if c == b"M":
-                if pending is not None:
+                if first is not None:
                     m = raw.split()
-                    yield Line(*pending, -1, -1, tuple(int(v, 16) for v in m[2:6]))
-                    pending = None
-            elif c in (b"[", b"\n", b""):
+                    cur = Line(*first, -1, -1, tuple(int(v, 16) for v in m[2:6]))
+                    first = None
+                    reads = []
+            elif c == b"[":
+                f = raw.split()
+                if len(f) == 4 and int(f[2], 16) in ZERO_PAGE_VIDEO:
+                    reads.append((int(f[2], 16), int(f[3], 16)))
+            elif c in (b"\n", b""):
                 continue
             else:
                 f = raw.split()
                 if len(f) == 7:
-                    pending = (*(int(v, 16) for v in f[:6]), int(f[6]))
+                    if cur is not None:
+                        yield replace(cur, reads=tuple(reads))
+                        cur = None
+                    first = (*(int(v, 16) for v in f[:6]), int(f[6]))
+        if cur is not None:
+            yield replace(cur, reads=tuple(reads))
 
 
 READERS = {"mame": read_mame, "mednafen": read_mednafen}
@@ -143,7 +158,9 @@ def make_system(referee: str, card_path: str, tg16: bool, args):
         vblank_dots=args.vblank_dots,
         vertical_at_line_start=args.mame_vertical,
     )
-    watch = IoWatch(board) if args.adopt_io_waits else None  # before the core binds the methods
+    watch = (
+        IoWatch(board) if args.adopt_io_waits or args.check_reads else None
+    )  # before the core binds the methods
     custom = args.mame_csh or args.mame_blocks or args.mame_entry7
     system = build(
         board, mame_core(args.mame_csh, args.mame_blocks, args.mame_entry7) if custom else None
@@ -216,13 +233,18 @@ class IoWatch:
 
     def __init__(self, board: Board) -> None:
         self.touched = False
+        self.reads: list[tuple[int, int]] = []  # (address, value) of this instruction's reads
         for name in ("read_byte", "write_byte"):
             original = getattr(board, name)
+            is_read = name == "read_byte"
 
-            def wrapped(address, *rest, _f=original):
+            def wrapped(address, *rest, _f=original, _read=is_read):
+                result = _f(address, *rest)
                 if address in ZERO_PAGE_VIDEO:
                     self.touched = True
-                return _f(address, *rest)
+                    if _read:
+                        self.reads.append((address, result))
+                return result
 
             setattr(board, name, wrapped)
 
@@ -242,13 +264,22 @@ def run(referee: str, trace: Path, card: str, args, tg16: bool) -> int:
         print("TIQ shares a vector with IRQ1/IRQ2: --adopt-timer-lag cannot tell them apart")
         gate = None
     lags: list[int] = []
-    entries = adopted = adopted_clocks = late = 0
+    entries = adopted = adopted_clocks = late = read_diffs = 0
     waits: Counter = Counter()  # adopted wait states, by size in ticks
     late_at: Counter = Counter()  # instructions the board ran before an entry the referee took
     start_ticks = None
     start_mclk = board.mclk
     skew = 0  # ticks the board is ahead of the referee after a --resync-late (cumulative)
     step = system.step
+    irq_changes: list[tuple[int, tuple[bool, bool, bool]]] = []  # for --probe: (mclk, lines)
+    if args.probe:
+        set_lines = system.cpu.set_irq_lines
+
+        def logged_lines(irq1: bool, irq2: bool, tiq: bool) -> None:
+            irq_changes.append((board.mclk, (irq1, irq2, tiq)))
+            set_lines(irq1, irq2, tiq)
+
+        system.cpu.set_irq_lines = logged_lines
     count = -1
     for count, line in enumerate(reader(trace)):
         if count >= args.max:
@@ -281,9 +312,19 @@ def run(referee: str, trace: Path, card: str, args, tg16: bool) -> int:
             skew = 0  # the clocks agree again (a loop as long as the skew: the board is an
             # instruction ahead in the stream, and meets the referee's clock at the next entry)
         my_ticks = raw - skew
-        if watch is not None and watch.touched and mine == theirs and their_ticks > my_ticks:
+        if (
+            watch is not None
+            and watch.touched
+            and mine == theirs
+            and their_ticks > my_ticks
+            and args.adopt_io_waits
+        ):
             board.advance((their_ticks - my_ticks) * 3)
             adopted += 1
+            if args.show_waits and their_ticks - my_ticks >= args.show_waits:
+                print(
+                    f"wait of {their_ticks - my_ticks} ticks adopted at #{count} pc {line.pc:04X}"
+                )
             adopted_clocks += their_ticks - my_ticks
             waits[their_ticks - my_ticks] += 1
             my_ticks = their_ticks
@@ -303,7 +344,26 @@ def run(referee: str, trace: Path, card: str, args, tg16: bool) -> int:
             history.append((count, theirs, their_ticks))
         if watch is not None:
             watch.touched = False
+            watch.reads.clear()
         step()
+        if args.check_reads and referee == "mednafen" and watch.reads != list(line.reads):
+            read_diffs += 1
+            if read_diffs <= 12:
+                print(
+                    f"READ DIFFERENCE at #{count} pc {line.pc:04X}: board "
+                    f"{[(hex(a), hex(v)) for a, v in watch.reads]} {referee} "
+                    f"{[(hex(a), hex(v)) for a, v in line.reads]}"
+                )
+        if args.probe and args.probe[0] <= count <= args.probe[1]:
+            vdc = board.vdc
+            sat_end = vdc.dma.sat_end
+            print(
+                f"probe #{count} next pc {fmt(ours(system))[:4]} t={(board.mclk - start_mclk) // 3} "
+                f"sat_end={None if sat_end is None else (sat_end - start_mclk) // 3} "
+                f"vdma={vdc.dma.running} bsy={vdc.bsy} {vdc.seq.vphase.name} "
+                f"rcr={vdc.seq.rcr_count} status={vdc.status:02X} mclk={board.mclk - start_mclk} "
+                f"irq={[(m - start_mclk, tuple(int(x) for x in v)) for m, v in irq_changes[-2:]]}"
+            )
     n = count + 1
     print("no difference over the whole trace" if count < args.max else "stopped at --max")
     summary(n, entries, adopted, adopted_clocks, waits, late, late_at, skew, lags)
@@ -356,6 +416,26 @@ def main() -> int:
     ap.add_argument("--adopt-cd-sense", action="store_true")
     ap.add_argument("--adopt-timer-lag", action="store_true")
     ap.add_argument("--resync-late", action="store_true")
+    ap.add_argument(
+        "--show-waits",
+        type=int,
+        metavar="MIN",
+        help="print each adopted wait state of MIN ticks or more, with its instruction index",
+    )
+    ap.add_argument(
+        "--check-reads",
+        action="store_true",
+        help="also compare each instruction's VDC/VCE reads with the ones the Mednafen trace logs "
+        "(the first 12 differences are printed, the run goes on)",
+    )
+    ap.add_argument(
+        "--probe",
+        type=int,
+        nargs=2,
+        metavar=("FROM", "TO"),
+        help="print the board's VDC state (SAT transfer end, BSY, vertical phase, line counter) "
+        "after each instruction with these indices",
+    )
     args = ap.parse_args()
     return run(args.referee, args.trace, args.card, args, args.tg16)
 
