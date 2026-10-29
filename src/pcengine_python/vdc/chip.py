@@ -250,6 +250,12 @@ class Vdc:
         if port == 1:
             return 0
         msb = port == 3
+        if self._pending_read is not None:
+            # The word the last MARR write or VRR read asked for is not in the buffer yet (it
+            # waits for a CPU slot or a DMA): the CPU waits for it rather than reading the old
+            # word. The manual's read sequence and both Mednafen and Mesen2 ("D&D Order of the
+            # Griffon breaks without this") agree; the model's slot wait made the case possible.
+            self._data_access(mclk)
         value = (self.regs.read_buffer >> 8) if msb else (self.regs.read_buffer & 0xFF)
         if msb and self.regs.select == r.VRW:
             # [hw: pcetech 5.1 $02] after the MSB read MARR advances and the next word is read

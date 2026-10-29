@@ -315,6 +315,33 @@ def test_a_second_vram_write_holds_the_cpu_to_the_end_of_the_satb_dma():
     assert board.vdc.vram[0x301] == 0x2222 or board.vdc.bsy
 
 
+def test_a_data_read_waits_for_the_word_a_pending_fetch_has_not_loaded_yet():
+    """Hudson's read sequence (MARR, then VRR LSB and MSB) gives the word at MARR; in the display
+    the fetch waits for a CPU slot, and a read before it must wait, not return the old buffer."""
+    board, _ = make(cr=0x0080)
+    vdc = board.vdc
+    vdc.vram[0x10] = 0x1234
+    vdc.vram[0x11] = 0x5678
+    vdc.regs.read_buffer = 0xFFFF
+    while not (
+        vdc.seq.active_display
+        and vdc.slot_time(board.mclk) > board.mclk + 3
+        and vdc.slot_time(board.mclk + 4) > board.mclk + 4
+    ):
+        board.advance(1)
+    now = board.mclk
+    vdc.write(0, r.MARR, now)
+    vdc.write(2, 0x10, now)
+    vdc.write(3, 0x00, now)  # the fetch of word $10 waits for a slot
+    assert vdc.bsy
+    vdc.write(0, r.VRW, now)
+    held_before = board._held
+    assert vdc.read(2, now) == 0x34  # the new word, after the wait
+    assert board._held > held_before
+    assert vdc.read(3, now) == 0x12  # and the MSB read starts the fetch of $11
+    assert vdc.bsy or vdc.regs.read_buffer == 0x5678
+
+
 @pytest.mark.parametrize("lines", [ACTIVE_LINES])
 def test_active_lines_constant(lines):
     assert lines == 242
