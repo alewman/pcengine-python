@@ -167,7 +167,10 @@ rule is stated first, then each source.
   transfer ends**, never earlier (since 2026-10-29: the display-width event used to serve it at the
   next line start, which dropped BSY in the middle of the transfer; Bonk's Adventure, test
   `test_a_waiting_cpu_write_stays_busy_across_line_starts_until_the_satb_dma_ends`); a *second* data
-  access (VWR or VRR MSB, MARR MSB) holds the CPU until then.
+  access (VWR or VRR MSB, MARR MSB) holds the CPU until then. A data-port read while a read is still pending (after a MARR write
+  or an MSB read of VRR: the word waits for a CPU slot or a transfer) holds the CPU until the word
+  is in the buffer (2026-10-29: it used to return the previous word; both emulators wait, the
+  manual's read sequence implies it; `test_a_data_read_waits_for_the_word_a_pending_fetch_has_not_loaded_yet`).
 - *Hudson manual (tier 3)*: silent on the CPU while a transfer runs. It says the SATB transfer is
   "256 words ... at the beginning of a vertical blanking period", and for BSY: "the VRAM is being
   accessed (read or written) in response to the CPU access".

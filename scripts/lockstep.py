@@ -36,6 +36,14 @@ Experiments (off by default; each names what it overrides, to look behind a diff
   --adopt-io-waits   add Mednafen's VDC/VCE wait states to the board's clock after an instruction
                      that touched $FF:0000-07FF (Mednafen's board model, U18; the board charges one
                      cycle); the count and the clocks adopted are reported
+
+Looking behind a difference (they change nothing in the run):
+
+  --check-reads      compare each instruction's VDC/VCE reads (address, value) with the
+                     `[luaengine] R` lines of the Mednafen trace; the first 12 are printed
+  --probe FROM TO    the board's VDC state (SAT transfer end, BSY, vertical phase, line counter,
+                     the IRQ line changes) after each instruction FROM..TO
+  --show-waits MIN   each adopted wait of MIN ticks or more, with its instruction index
 """
 
 from __future__ import annotations
