@@ -141,3 +141,50 @@ against Mednafen, none against MAME.
 
 `tests/test_lockstep_readers.py` covers the two trace readers. The runs themselves need the traces
 (not stored) and the cards (BYOR); the commands above reproduce them.
+
+## After the DMA/status work (2026-10-29)
+
+Question: the stops named "SATB DMA stall" (After Burner II), "BSY" (Bonk's Adventure), "status flag
+timing" (Bomberman '94) and the unexplained waits of Final Soldier, and how the VDC models of the CPU
+wait behind a DMA and of the status flags should change. Same traces (Mednafen 1.32.1, 5 M
+instructions each, 20 M for R-Type), same "Full" flags, CPython. New in `scripts/lockstep.py`:
+`--check-reads` (every VDC/VCE read value against the `[luaengine] R` lines of the trace),
+`--probe FROM TO` (the board's VDC state and IRQ line changes per instruction) and `--show-waits MIN`.
+The causes below were found with a patched copy of Mednafen's `vdc.cpp` that logs the SAT transfer,
+the pending accesses, the window of U33 and the vertical phases (kept in the scratchpad, not in the
+repository). Sources and rules: [vdc.md](vdc.md); entries U30-U35, C26-C29 in the brief.
+
+| Game | Before | After | What the stop is |
+| --- | --- | --- | --- |
+| R-Type I | 20,000,000 | **20,000,000**, 668 entries, 0 read differences | none |
+| Gradius | 107,737 | 107,737 | IRQ1 (the raster flag) rises at the very end of the instruction before the stop (mclk 1,745,844 = the boundary); Mednafen enters there, the board one instruction later: **U21** (the tie rule), nothing of the VDC's status model. 7 VDC reads before it, all equal |
+| Final Soldier | 630,583 | 630,583 | the same kind (an entry one instruction apart, after 2,607 entries). **The 907, 3,653 and 4,551 tick waits are not DMA**: they are three `TIA` block transfers into VWR (instructions 22,007, 22,129 and 22,781: 29,604, 119,264 and 118,366 ticks, 65 to 262 lines) and come to 14-17 ticks a line: Mednafen's 16-dot window in which a pending VRAM access is not served (**U33**). 311 reads before the stop, all equal |
+| After Burner II | 187 | 187 | **not a wait-model difference.** Mednafen starts no SAT transfer there (its display counter, still cycling through the power-up phases every ~213 ticks, is in the VDS phase when the game writes DCR D4 and DVSSR at tick 24,182, and stays there for 32 lines); the board is in its VCR phase and starts one at 24,280, and holds the next write 1,023 ticks. Where Mednafen does run a transfer (tick 119,222) it holds the CPU too, 1,940 ticks for a 1,365 tick transfer (release at the first event after the end): the structure agrees (**U30, U31, U32**) |
+| Bomberman '94 | 343,164 | 343,164 | `LDA $25` in the VDC handler (the saved register select, restored with `STA $0000`) differs because the board ran `ST0 #1` at D588 before an interrupt Mednafen took one instruction earlier (a late-visibility resync, **U21**); not a status bit. 2,903 VDC/VCE reads before the stop, all equal |
+| Bonk's Adventure | 142,068 | **235,057** | the old stop was a board bug: the display-width event served the waiting CPU word at a line start in the middle of the SAT transfer, so BSY read clear (Mednafen `$60`, board `$20`). Fixed (`commit_unless_dma`, test `test_a_waiting_cpu_write_stays_busy_across_line_starts_until_the_satb_dma_ends`). The new stop is an `RTI` returning to `C8D1` where Mednafen returns to `C8CE`: a late-visibility resync that passed (registers equal) with a different pushed address, **U21** |
+
+- **Status flags (B).** In all six games every VDC and VCE read value agrees with Mednafen up to the
+  stop; the lockstep gives no evidence for a different flag rule. The only status defect found was
+  BSY in the Bonk case above.
+- **A second fix**: a data-port read while a fetch was pending returned the previous word
+  (`test_a_data_read_waits_for_the_word_a_pending_fetch_has_not_loaded_yet`). No stop moved.
+- **Tried and not kept** (they moved no number the right way, so the code was removed again):
+  the VDC's own line machine going round again in a line (**U32**): After Burner II then stops at
+  2,389, not at the transfer but because the phase against the first sync still differs; Mednafen's
+  48+16 dot window (**U33**): the three Final Soldier waits fall to 470, 1,865 and 2,772 ticks, but
+  the board then runs 15 ticks ahead at the next access (Mednafen releases at the first event
+  after the window), and the stop moves from 630,583 to 23,943.
+- `--resync-late` accepts an early entry when the registers are equal afterwards; it cannot see the
+  pushed return address, so two of the stops above (Bonk, Bomberman) look like later register or
+  clock differences. Named, not changed.
+
+**Picture gate** (the 18 titles of M2/M3: 10 at 300 or 450 frames, 8 at 300 and 600; extracted cards,
+US cards as TurboGrafx-16, PyPy; `scripts/m2_ours.py`, `scripts/m2_compare.py`): all 27 pictures are
+**byte-identical before and after** the two fixes, although the changed paths were taken
+(143 times in Aero Blasters, 116 in Armed F, 90 in Air Zonk; 15 read waits in Blazing Lazers; none in
+Andre Panza and R-Type), and every one is still 1.0000 / 1.0000 (pixels / rows) against Mesen2 with
+sprites on and against Beetle PCE. After Burner II at 600 frames: Beetle 1.0000 / 1.0000, Mesen2
+0.9994 / 0.9587 (42 pixels in rows 103-119, cols 111-134, e.g. 0x1b0 against ours 0x178), the same
+before and after; not explained here (the board agrees with Beetle). The first attempt of this gate
+passed the `.7z` files as cards (the file is read in place, not unpacked): every picture came out
+black and "identical"; the figures above are from the repeated run.
