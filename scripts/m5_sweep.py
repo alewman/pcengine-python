@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """M5 library sweep: one HuCard (or all) on this board against Mesen2 and Beetle PCE.
 
-    .venv/bin/python scripts/m5_sweep.py LIBDIR SCRATCH RESULTS.jsonl [--only SUBSTR] [--jobs 6]
+    python3 -I scripts/m5_sweep.py LIBDIR SCRATCH RESULTS.jsonl [--only SUBSTR] [--names FILE]
+        [--jobs 3] [--cards 10] [--targets 300 600]
 
 For each .7z/.zip/.pce in LIBDIR (top level, read in place): the image is extracted into its own
 directory under SCRATCH, run on this board under PyPy (`.venv-pypy`) to frame 300 and 600
@@ -10,7 +11,9 @@ directory under SCRATCH, run on this board under PyPy (`.venv-pypy`) to frame 30
 alignment offsets (Mesen2 dx 14 or 24, Beetle dx 32 or 46, dy -2..2): share of equal pixels, share
 of equal rows, first differing pixel. One JSON line per card and frame is appended to RESULTS; a
 card already in RESULTS is skipped. The extracted copies are deleted after each card by a small
-Python helper (BYOR: no ROM bytes stay anywhere). Needs numpy and Pillow (the CPython venv).
+Python helper (BYOR: no ROM bytes stay anywhere). Needs numpy and Pillow: the system python3
+(the venvs lack them); the board itself runs under `.venv-pypy`. `--targets A B` picks the two
+frames compared (pass 2 of the M5 record used 900 and 1500).
 """
 
 from __future__ import annotations
@@ -116,6 +119,7 @@ def m2_jobs(refs: Path, jobs):
 
 
 def main() -> int:
+    global TARGETS
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("lib", type=Path)
     p.add_argument("scratch", type=Path)
@@ -123,8 +127,11 @@ def main() -> int:
     p.add_argument("--only", default="")
     p.add_argument("--names", type=Path, help="file of card file names, one per line")
     p.add_argument("--jobs", type=int, default=6)
+    p.add_argument("--targets", type=int, nargs=2, default=TARGETS, metavar=("A", "B"),
+                   help="the two frames compared (default 300 600; pass 2 uses later ones)")
     p.add_argument("--cards", type=int, default=3, help="cards in parallel")
     a = p.parse_args()
+    TARGETS = tuple(a.targets)
     done = set()
     if a.results.exists():
         done = {json.loads(line)["card"] for line in a.results.read_text().splitlines() if line}

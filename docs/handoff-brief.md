@@ -129,7 +129,7 @@ hardware unless noted):
 | U14 | SuperGrafx: VPC window edge timing, priority modes, VDC2 IRQ, the compat switch decode | `sgxtech` (tier 2, "much more information in the near future") | for M6 |
 | U15 | Detector outliers: Samurai-Ghost, Barbarian (ZX), Death Sword (PC), Mai Nurse, Battle Ace, Gunboat, Madou King Granzort | `tests/detectors/pce-sample-2026-10-23.txt` | lockstep to find the first divergence |
 | U16 | Which emulator is closest to hardware per subsystem (CPU, VDC, PSG, CD) | claims only | establish per subsystem as referees are chosen |
-| U17 | Python speed of the whole board | extrapolation from famicom-python | measure at M3 |
+| U17 | Python speed of the whole board | extrapolation from famicom-python | measure at M3; **measured 2026-10-30: 1.8 frames a second on PyPy (0.03x real time), CPython 2.3 on a short run**, see [m5-record.md](m5-record.md) |
 | U18 | HuCard access times and mirroring of non-power-of-2 images (384K known only from emulators); boards of the 25 unlisted aftermarket images | emulators; running | by running |
 | U19 | IRQ sampling cycle, the dot of the vblank flag; Covell: Mednafen's VSync "triggers too late" | tier 1 photo, qualitative | M1 |
 | U20 | Block-transfer cycle counts with VRAM/IO targets | Covell X-cycle photos | M1, provisional |
@@ -144,6 +144,7 @@ hardware unless noted):
 | U33 | A window in which a pending VRAM access is not served: Mednafen 16 dots starting 48 dots after the sync begins (`mystery_counter`, vdc.cpp l.538, 635), Mesen2 the first 8 dots of the sync ("test rom result"), board none | emulators (tier 5); a streaming `TIA` to VWR loses 14-17 ticks per line to it (Final Soldier's adopted 907, 3,653 and 4,551 tick waits are three block transfers of 65-262 lines) | **undecidable**; not built (tried: a 48+16 window halves the three waits but the board then runs 15 ticks ahead of Mednafen at the next access, release at the next event) |
 | U34 | Status BSY (D6) | manual: "VRAM is being accessed in response to the CPU access"; pcetech: "waiting for a CPU access slot during the active display area" | board: an access is pending; every VDC read value agrees with Mednafen's in the six games (`--check-reads`) |
 | U35 | The line position of the overflow and collision flags | emulators (tier 5); manual: overflow also when pattern data cannot be fetched in blanking | board: overflow at the scan, collision at the pixel; no lockstep difference |
+| U36 | Which backup memory a HuCard game finds: a bare console has none; the CD unit's BRAM, a Tennokoe Bank or a Turbo-class save device add it | manual/pcetech silent on the console side; games test for it (Tiger Road's BACK UP, Bomberman's LOAD, Santatlantean's warning text); Mesen2 and Beetle PCE always supply BRAM (tier 5) | board: none (a bare console). The 3 persistent sweep differences of this kind are **not defects**; a BRAM option waits for M7 ([m5-record.md](m5-record.md)) |
 
 **Conflicts** (sources disagree; C-number = the label used in the other documents):
 
@@ -162,9 +163,11 @@ hardware unless noted):
 | C10 | multitap read with CLR high after the reset write | pcetech: pad 1's directions; pce-devel port table: 0 | pcetech's, switchable |
 | C13-C24 | the PSG's disputed points: R6 data while playing (pcetech ignores, both emulators store), the 45 dB cut-off, the R1/R5 table, the DDA latch, noise NF = 0, LFO needing channel 2, the LFO register 0, the noise shift register running always or only while played, Mednafen's rotating volume latch, key-on (MAME reloads the counter, Mednafen steps the address), LF TRG, Mednafen's averaging at F <= 3 | docs/m4-record.md: the model's defaults follow the manual and pcetech; each referee's way is a named switch that reproduces it with 0 differences on five games | provisional, tier 5 |
 | C26 | the wait on a second VRAM access behind a DMA | Mednafen: released at the first VDC event after the DMA ends; Mesen2: at the end, and already at the *first* MAWR/MARR/VWR access after a queued one; MAME: none | board: held to the end of the transfer (U30), provisional |
-| C27 | when the SAT DMA starts | Mednafen: display end line step (vertical phase change, or the sync); Mesen2 and MAME: the vblank flag | board: Mednafen's (U31) |
+| C27 | when the SAT DMA starts | Mednafen: display end line step (vertical phase change, or the sync); Mesen2 and MAME: the vblank flag | board: Mednafen's (U31); **2026-10-30**: the vertical sync now also ends a VDW the sync cuts short, as Mednafen's test "phase is not VDW" does (Rastan Saga II, VDS $18 + VDW $FF, drew no sprites before) |
 | C28 | the VRAM block window beside the sync | Mednafen 48+16 dots, Mesen2 0+8 dots, board and MAME none | none built (U33) |
 | C29 | the overflow flag's time | Mednafen and board: the scan; Mesen2: the next line's HDS; MAME: at the scan only if enabled | board's (U35) |
+| C30 | the pixel of a display line (inside VDW, not burst) with both layers off | pcetech 5.2: overscan (sprite colour 0, `$100`); Mednafen, Mesen2, Beetle PCE: the backdrop (BG colour 0, `$000`) (Space Harrier's last 12 lines); Mednafen with sprites on and BG off: `$100`, the board `$000` (no card shows it) | board: the emulators' for both-off (2026-10-30, tier 5 over tier 2: three emulators agree and the picture differs); sprites-only unchanged |
+| C31 | the colour of lines outside a short VDW (rows above and below the display period) | Beetle PCE: `$1FF` (Binary Star rows 0-10, 235-241); Mesen2 and the board: `$000` | board's; Beetle alone differs, tier 5 |
 
 ## Open decisions for Aubrey (each with my recommendation)
 
