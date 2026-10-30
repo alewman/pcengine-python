@@ -240,6 +240,34 @@ def test_satb_dma_copies_256_words_when_the_display_ends_and_reports_done_late()
     assert board.vdc.status & r.DS
 
 
+def test_satb_dma_still_runs_when_the_sync_cuts_the_display_period_short():
+    """Rastan Saga II programs VDS $18 and VDW $FF: the display period would run past the
+    frame's end, the vertical sync starts the next frame first. Mednafen tests for the transfer
+    whenever the phase is not VDW after the display began (C27); without it the sprite table
+    stays empty and the title's sword is not drawn."""
+    board, cpu = make(cr=0x0080 | 0x0008)
+    vdc_reg(cpu, 0x0D, 0x00FF)  # VDW 256 lines: 25 + 256 lines is past the 263-line frame
+    board.advance(LINE_CLOCKS * 263)  # the vertical sync caches the registers
+    for i in range(256):
+        board.vdc.vram[0x7F00 + i] = 0x4000 + i
+    vdc_reg(cpu, r.SATB, 0x7F00)
+    assert board.vdc.sat[0] == 0
+    board.advance(LINE_CLOCKS * 263 * 2)
+    assert [board.vdc.sat[i] for i in (0, 255)] == [0x4000, 0x40FF]
+
+
+def test_both_layers_off_inside_the_display_period_show_the_backdrop_not_the_overscan():
+    """Space Harrier switches the background and sprites off for the last 12 lines
+    (CR $0C at line 245): Mednafen, Mesen2 and Beetle PCE show colour 0 of the background
+    palette there (C30); pcetech 5.2 says overscan, which the board followed before."""
+    board, cpu = make(cr=0x0080 | 0x0008)
+    board.advance(LINE_CLOCKS * (263 + 100))  # frame 1, inside the display period
+    vdc_reg(cpu, r.CR, 0x0008)  # both layers off, vblank interrupt on
+    board.advance(LINE_CLOCKS * (263 - 100) + LINE_CLOCKS * 5)  # to the end of frame 1
+    row = picture_row(board.capture.last_frame, 100)  # frame line 125, after the write
+    assert set(row) == {0x000}
+
+
 def test_satb_dma_repeats_every_frame_with_dcr_bit_4():
     board, cpu = make(cr=0x0080)
     vdc_reg(cpu, r.DCR, 0x0010)

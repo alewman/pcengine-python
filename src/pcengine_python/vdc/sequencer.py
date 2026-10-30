@@ -172,6 +172,11 @@ class Sequencer:
         if self.need_rcr_inc:
             self._inc_rcr()
             self.need_rcr_inc = False
+        if self.vphase == VPhase.VDW:
+            # [emu: Mednafen] the SAT transfer test runs whenever the phase is not VDW after the
+            # display period began, so a VDW that the sync cuts short (Rastan Saga II: VDS $18,
+            # VDW $FF) still transfers (C27, found by the M5 sweep).
+            self.chip.display_ended()
         self._cache_vertical()
         self.vphase = VPhase.VSW
         self.vphase_counter = self.vsw + 1

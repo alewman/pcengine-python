@@ -206,10 +206,11 @@ class Vdc:
             pixels = self._background.row(
                 self.vram, VRAM_WORDS, self._mwr_cache, self._bg_x_offset, self._bg_y_offset, width
             )
-        elif cr & 0x40:
-            pixels = [0x000] * width
         else:
-            return
+            # sprites only, or neither layer inside a non-burst display period: the backdrop.
+            # [emu: Mednafen, Mesen2 and Beetle all show colour 0 of the background palette when
+            # both layers are off (Space Harrier's last 12 lines); pcetech 5.2 says overscan: C30]
+            pixels = [0x000] * width
         end = min(first + width, dots)
         row[first:end] = pixels[: end - first]
         if cr & 0x40 and self._sprite_entries:
