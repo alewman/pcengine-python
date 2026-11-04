@@ -109,6 +109,46 @@ of the ROM's wait loop, so the quantum of the interrupt's entry, and the entry's
 poll point (U21) are the suspects. **M1's exit cannot close** on Covell's criterion; what holds
 (vertical splits, instruction timing walking nowhere) is recorded above.
 
+### The vblank fit, per photograph (2026-11-04)
+
+`scripts/covell_calibrate.py` re-run per vblank position, both modes, against the photographs only
+(ours minus hardware, dots, groups 2-8; the -8 rows reproduce the table above):
+
+| `vblank_dots` | RAM mode | ROM mode |
+| --- | --- | --- |
+| -16 | -4.6 -5.0 -7.0 -6.6 -7.8 -4.0 -2.2 | -5.4 -7.0 -3.6 -5.8 -6.8 -6.4 -3.2 |
+| -12 | -4.6 -5.0 -1.0 -0.6 -1.8 -4.0 -2.2 | +0.6 -1.0 -3.6 +0.2 -0.8 -0.4 -3.2 |
+| -11 | +1.4 +1.0 -1.0 -0.6 -1.8 +2.0 -2.2 | +0.6 -1.0 -3.6 +0.2 -0.8 -0.4 -3.2 |
+| -10, -9 | +1.4 +1.0 -1.0 -0.6 -1.8 +2.0 +3.8 | +0.6 -1.0 +2.4 +0.2 -0.8 -0.4 +2.8 |
+| -8 (default) | +1.4 +1.0 +5.0 -0.6 +4.2 +2.0 +3.8 | +6.6 +5.0 +2.4 +6.2 +5.2 -0.4 +2.8 |
+| -6 | +1.4 +1.0 +5.0 +5.4 +4.2 +2.0 +3.8 | +6.6 +5.0 +2.4 +6.2 +5.2 +5.6 +2.8 |
+| -4 | +7.4 +7.0 +5.0 +5.4 +4.2 +8.0 +9.8 | +6.6 +5.0 +8.4 +6.2 +5.2 +5.6 +8.8 |
+
+What the per-case pattern says. Each group's split sits on one of two levels about 4-6 dots apart and
+**jumps a whole level (4-6 dots) at a threshold vblank position** (e.g. RAM group 4 between -10 and -8,
+group 5 between -8 and -6; ROM group 4 and 8 between -11 and -10); between thresholds the vblank
+position moves nothing. The 4 dots are the
+quantum with which the ROM's wait loop takes the interrupt; the hardware's splits do not show it
+(spread 2.4, no group on two levels). So the vblank position fixes the mean and cannot fix the
+spread: the mean is best at -11 to -9 (mean -0.2 to +0.7 RAM, -1.2 to +0.5 ROM; largest single
+residual 2.2-3.8 against 3.6 at -11 ROM), the spread stays 3.8-5.6 at every position that has a
+good mean. No position puts both modes' seven groups within the photographs' 2.4-dot spread (the
+best, -10 and -9 ROM, is 2.8 at worst; -10 RAM is 3.8). The earlier variants (C3's 7-cycle entry,
+no VCE stretch) change the quantum's phase or shift the mean, as recorded above; none removes the
+two-level jump. Line-start offset: the calibration anchors on the test's own text, which moves with
+the line start, so it cancels; not a free parameter here.
+
+**Decision (2026-11-04): the default stays -8.** No parameter closes the criterion, so no default
+is changed, no 18-picture gate or lockstep re-run was needed (nothing moved). **-10 (or -9) is the
+best fit** to the photographs (mean +0.6 against +3.2, worst +3.8 against +6.6) and is available as
+`Board(vblank_dots=-10)` for a later decision; it is not adopted because it does not close the
+criterion either, and a move that does not close it is a tuning, not a result. **M1 closes as a
+documented provisional.** What remains: the two-level quantum of the interrupt's entry (the entry
+length C3, the poll point U21; both in the core's interrupt sampling, a separate repository) and
+Covell's own data cannot separate them; the hardware spread of 2.4 dots against the board's 4 stays.
+A tier-1 observation that isolates the interrupt entry (a cycle-exact instruction at known
+vblank phase) would close it; the photographs of the 2-8 cycle groups do not.
+
 ### MAME instruction-stream lockstep (tier 5), `scripts/mame_lockstep.py`
 
 MAME's 2.1 M-instruction trace of the same ROM (`tests/mame_traces/`, not copied) against the board,
