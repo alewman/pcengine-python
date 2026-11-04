@@ -5,6 +5,18 @@ again after two small board fixes this sweep found (below). Judges: **Mesen2 (sp
 Beetle PCE, both emulators, tier 5**: neither is a judge, they are two votes ([validation.md](validation.md)).
 The lockstep half is in [m5-lockstep-record.md](m5-lockstep-record.md).
 
+**Correction, 2026-11-04.** The sweep's frame choice had a flaw, found by running Formation Soccer
+down: `best_alignment` scores every third pixel, so on a mostly flat picture several (frame, dx)
+pairs score a full 1.0 and the first in window order won, even when another frame was exactly equal.
+Formation Soccer's "regression" (frame 297 at dx 197 picked over frame 300 at dx 14, which is
+identical to both referees), HuZERO's and the five "phase" NEARs below were this, not the board.
+`scripts/m5_sweep.py` now scores every candidate within 0.5 % of the best on all pixels
+(`best_frame_exact`, test `tests/test_m5_sweep_compare.py`). The 14 cards that were not identical (the three U36 cards, Binary Star and the two fixed cards, Rastan Saga II and Space
+Harrier, were not), at 300 and 600 (HuZERO and Heavy Unit at 1500), were re-run with it
+(`tests/detectors/m5-sweep-exact-2026-11-04.txt`, 26 lines); the earlier files keep the old,
+flawed numbers and are not edited. Everything below that says "NEAR", "phase" or "Formation Soccer
+regression" is superseded by the section "Corrections after the exact comparison".
+
 ## What ran
 
 `scripts/m5_sweep.py` over `/data/emu/roms-retrobat/pcengine` (179 HuCards, read in place, extracted
@@ -32,6 +44,7 @@ Result files (JSON lines, one per card and checkpoint, `tests/detectors/`):
 | Pass 1 before the DMA work (2026-10-25) | 156 | 7 | 16 |
 | **Pass 1 now** (code 5826715) | **162** | **6** | **11** |
 | After the two fixes (76 of the 179 re-run, see below; the rest assumed unchanged) | 164 | 6 | 9 |
+| **After the exact comparison (2026-11-04, 14 cards re-run; the rest unchanged)** | **170** | **0** | **9** |
 
 The 179 were not all re-run after the fixes: 30 + 46 = 76 were (all 17 non-identical cards included).
 Of the 76, 2 moved (Rastan Saga II and Space Harrier, to identical); none of the 59 other cards
@@ -50,7 +63,7 @@ did not move, which 46 random ones out of 149 support (46 of 46 unchanged) but d
 | Legendary Axe | NEAR 0.992 | IDENTICAL | the same |
 | Takin' It to the Hoop | NEAR 1.000/0.996 | IDENTICAL | the same |
 | Battle Royale | DIFFERENT 0.270/0.167 | DIFFERENT 0.992/0.591 | C25 and the DMA work: the first frame is 23 pixels now |
-| **Formation Soccer** | IDENTICAL | **NEAR** 0.992/1.000 | **a regression**: a loading bar's red line (36 px, rows 115-116) is missing at frame 300 and present at 600; the picture is one frame out of step with the referees now (pass 2: identical at 900 and 1500). Not run down |
+| **Formation Soccer** | IDENTICAL | **NEAR** 0.992/1.000 | **a regression**: a loading bar's red line (36 px, rows 115-116) is missing at frame 300 and present at 600; the picture is one frame out of step with the referees now (pass 2: identical at 900 and 1500). Not run down. **Superseded 2026-11-04: a comparator artifact, identical (see "Corrections")** |
 
 Everything else is the same class. The DMA and status work therefore moved 7 cards the right way
 and one the wrong way, in the picture only.
@@ -87,8 +100,55 @@ later checkpoint agreeing is the evidence.
 
 Pass 2's extra sample (6 identical cards at 900/1500): 4 stayed identical (Neutopia II, Thunder
 Blade, Skweek, Barbarian (Amstrad CPC)), **2 differ at 1500 only**: Heavy Unit (Mesen2 only, 3 % of rows,
-Beetle identical) and HuZERO (both referees, 2.5 % of rows, row 79). Not run down; animated frames.
+Beetle identical) and HuZERO (both referees, 2.5 % of rows, row 79). Not run down; animated frames. **Run down 2026-11-04: HuZERO identical (comparator artifact), Heavy Unit a Mesen2-only fade-band phase (C32); see "Corrections".**
 Of the 6 cards that had moved to identical, all 6 stayed identical at 900 and 1500.
+
+## Corrections after the exact comparison (2026-11-04)
+
+**Formation Soccer** (task: run the identical -> near move down). The board is deterministic (two runs
+of the current code give the same frame 300). Dumping the
+board's frames 290-306 and comparing each with Mesen2's and Beetle's 290-306: the game updates its
+loading bar every third frame, and the board's frame 300 is **identical (rows 1.0000, pixels 1.0000)
+to both referees' frame 300** at the usual dx 14 and 32, as are all 17 board frames to some referee
+frame. The sweep had picked referee frame 297 at dx 197 (a 34,848 pixel overlap): on this flat
+picture the 1-in-3 sample scores 1.0 for that pairing too, and it came first. With the exact
+comparison the card is identical at 300 and 600 (rerun through the sweep script). No bisect over
+2bd6665..f1a2f5a was run: the current board is identical to both referees here, so there is no board difference to
+bisect (the older "identical" verdict came from a comparator without the wide dx search that
+`d2a9b04` added; not re-run at the old commits). **Cause: harness (tie-break on a sampled score), not the board.**
+
+**HuZERO at 1500.** The same flaw (frame 1492 chosen, 2.5 % of rows): all 17 board frames
+1492-1508 are identical to both referees at the same frame number, on the pass-2 code
+(5826715, checked) and on the current code. Identical.
+
+**Heavy Unit at 1500.** Beetle PCE: identical at every one of the 17 frames (referee frame =
+board frame + 1). Mesen2: the picture matches at some frames (board 1493, 1497, 1501) and at
+others differs in exactly one 8-row band, rows 129-136, columns 86-205, 573 pixels, in two
+colours: a text fade that steps every four frames through `$1FF, $1B6, $16D, $124` (the band's
+palette value in the board's frames: 511, 438, 365, 292 for 1493-1496, 1497-1500, 1501-1504,
+1505-1508), where Mesen2's band is one step ahead of its own scene (365 against the board's 438 at
+the frame where the scene is equal). That is the phase of one fade counter against the scene in
+Mesen2 only; the board agrees with Beetle on all 17 frames. Entered as **C32**; not shown to be
+a board defect (two of three emulators, tier 5). The class stays NEAR for this checkpoint
+(Mesen2 0.9669 of the rows), in the pass-2 sample only.
+
+**The five "phase" NEARs.** Aero Blasters, Final Soldier, Keith Courage, ImageFight and Ghost
+Manor are **identical to both referees at 300 and 600** under the exact comparison: the same flaw
+(each had a frame chosen below the target, 292-299, at rows 0.9917-0.9959). Their old causes
+("an element in flight", "boot-time", "Mesen2") were readings of an artifact and are withdrawn.
+ImageFight's pass-2 NEAR at 1500 was not re-run.
+
+**Not changed by it**: Night Creatures (600: a bat sprite, 0.9091 of the rows, both referees, the
+same numbers as before), Super Metal Crusher (300: rows 109-198, 0.6198, both referees, no frame
+in 292-308 equal), After Burner II (600: 42 pixels, rows 103-119, Mesen2 only, Beetle identical),
+Davis Cup Tennis, Galaga '90 and Battle Royale (0.9917 at 300, 0.5909 at 600):
+genuine differences with the old causes (phase, starfield, demo timing), all still "not run down".
+
+Counts afterwards: **170 identical, 0 near, 9 different** (the three U36 cards; After Burner II,
+Davis Cup Tennis, Galaga '90, Battle Royale, Super Metal Crusher, Night Creatures), assuming the
+103 cards not re-run in the earlier pass did not move. The 6 non-U36 cards have named causes but
+three are only suspicions (Galaga '90's seed U2, Battle Royale's demo timing, After Burner II's
+Mesen2-only 42 pixels): they are triaged, not decided.
 
 Findings the sweep made (new, in [handoff-brief.md](handoff-brief.md)):
 
@@ -116,25 +176,58 @@ lists do not know: 25 aftermarket or homebrew, 1 US dump of Bonk's Revenge). Res
 **24 identical to both referees, Binary Star identical to Mesen2 and 0.926 against Beetle (C31),
 Santatlantean different (U36, the backup-memory warning)**. Great Fumo Binning, different in the earlier pass (0.091), is identical since the DMA work. At 900
 and 1500 five of them were run: Great Fumo and Barbarian (Amstrad CPC) identical, Binary Star
-identical to Mesen2 (C31), Santatlantean different (U36), HuZERO different at 1500 only (see above).
+identical to Mesen2 (C31), Santatlantean different (U36), HuZERO identical at 1500 (it read as different in pass 2, a comparator artifact, see "Corrections").
 
 ## The lockstep exit, honestly
 
-The M5 exit asks for "6 games lockstep >= N M instructions with 0 unexplained". It is **not met**:
+Replayed 2026-11-04 on the current code (f1a2f5a plus the sweep script fix, which does not touch
+the board): Mednafen 1.32.1 traces recorded afresh (20 M instructions for R-Type I, 5 M for the
+others), `scripts/lockstep.py mednafen` with the "Full" flags of
+[m5-lockstep-record.md](m5-lockstep-record.md) plus `--check-reads`, CPython 3.14; traces deleted
+after each run. f1a2f5a changed VDC behaviour; **no stop moved** against the 2026-10-29 table:
 
-| Game | Mednafen, instructions equal | Where it stops | Named cause |
-| --- | --- | --- | --- |
-| R-Type I | **20,000,000** (668 entries, 0 read differences) | nowhere | none |
-| Gradius | 107,737 | IRQ1 one instruction apart | U21 (the tie rule) |
-| Final Soldier | 630,583 | an entry one instruction apart after 2,607 entries | U21; its waits are U33 (the 16-dot window) |
-| After Burner II | 187 | a SAT transfer Mednafen does not start | U32 (the power-up display phase) |
-| Bomberman '94 | 343,164 | a register read after a late-visibility resync | U21 |
-| Bonk's Adventure | 235,057 | `RTI` returns to `C8D1`, Mednafen to `C8CE` | U21 (resync with another pushed address) |
+| Game | Mednafen, instructions equal | Where it stops | Named cause | Reads (`--check-reads`) |
+| --- | --- | --- | --- | --- |
+| R-Type I | **20,000,000** (668 entries, 1,390 waits adopted) | nowhere | none | 0 differences |
+| Gradius | 107,737 | IRQ1 one instruction apart (Mednafen enters at the boundary) | U21 (the tie rule) | 0 |
+| Final Soldier | 630,583 | an entry one instruction apart after 2,607 entries | U21; its long waits are U33 | 0 |
+| After Burner II | 187 | a SAT transfer Mednafen does not start | U32 (the power-up display phase) | 0 |
+| Bomberman '94 | 343,164 | `LDA $25` differs after a late-visibility resync | U21 | 0 |
+| Bonk's Adventure | 235,057 | `RTI` returns to `C8D1`, Mednafen to `C8CE` | U21 (resync with another pushed address) | 0 |
 
-Against MAME, none reaches 20 M (172,272 at best, R-Type). The remaining stops are U21 (the tie
-rule of interrupt visibility, tier 5 against tier 5), U33 (the 16-dot window) and U32 (the power-up
-phase): each is named, none is decided, and no stop has a tier-1 judge. Every stop has a named cause, so nothing is
-"unexplained" in the sense of an unnamed cause; the count of games that run 20 M is still one.
+Against MAME none reaches 20 M (172,272 at best, R-Type); not replayed (no MAME trace stored, 17
+minutes of wall time each on a loaded machine).
+
+### How the lockstep exit closes (proposal)
+
+The exit as written asks for "6 games lockstep >= N M instructions with 0 unexplained". Proposed
+reading, which the data supports and which Aubrey is asked to accept or refuse:
+
+1. **R-Type I is exact at 20 M against Mednafen** (668 interrupt entries, every register, MPR,
+   clock and VDC/VCE read value). This is the lockstep result; it uses five harness conventions
+   (reset S, Mednafen's vblank position, VDC wait states, a 1-clock raster tie rule, the power-on
+   colour table), all emulator-tier and off by default.
+2. **The other five stops are named and measured, and left as U-entries**: four are U21 (Gradius,
+   Final Soldier, Bomberman '94, Bonk's Adventure: Mednafen enters an interrupt at a boundary the
+   board's sample reaches one instruction later, tier 5 against tier 5, the Covell photographs
+   unable to place it), one is U32 (After Burner II: Mednafen's VDC counters cycle before the
+   registers are programmed; the board's do not). Each stop is a point at which the board follows
+   the tier-2/3 source and Mednafen a different convention; no tier-1 judge exists for either.
+3. **No new referee switch is added.** The cheap ones already exist as `Board` options and
+   `lockstep.py` flags and are in the "Full" set: `vblank_dots=None` (Mednafen's vblank position;
+   default -8, the photograph fit), `start_offset` (the raster tie shift), `vertical_at_line_start`
+   and `dma_resumes` (MAME's and the manual's readings). A switch for U21 would be a change in the
+   core's interrupt sampling (not cheap, and the core is a separate repository); for U32 a second
+   VDC line machine (tried 2026-10-29: After Burner II then stops at 2,389 for another phase
+   reason, not kept); for U33 Mednafen's 48+16 dot window (tried: the stop moved from 630,583 to
+   23,943, not kept). None of these was measured against the 18 pictures because none moves a stop
+   the right way, which was the condition for adding one. Default stays tier 2/3; Mednafen's
+   rule stays a lockstep flag. Low-tier referees are detectors here, not judges.
+4. **M5 is closed on this reading.** What keeps the literal exit open: only R-Type of the six
+   reaches 20 M; the others stop between 187 and 630,583 instructions. That cannot be closed
+   without a judge for U21/U32 (hardware or a tier-1 capture), so it is recorded, not hidden.
+   If Aubrey refuses the amendment, M5 stays open on exactly that item and nothing else (the sweep
+   half, the mappers and the unlisted images are done).
 
 ## U17: the speed
 
@@ -151,10 +244,14 @@ about 4 h with ten cards in parallel. The plain board is the reference, not the 
 
 ## The PyPy gate
 
-`pytest` on PyPy 3.11.13 (7.3.20): 228 passed, 1 skipped (numpy), 24 s. CPython 3.14: 228 passed,
-13 s. `ruff check` (2 errors: `scripts/psg_compare.py` C401, `src/pcengine_python/psg/chip.py` E501) and
-`ruff format --check` (3 files, among them `scripts/m2_ours.py`) report exactly what they reported
-before this work, and nothing in the files changed here. The sweep itself runs the board under PyPy for every card.
+2026-11-04, after the comparator fix: `pytest` on PyPy 3.11.13: 228 passed, 2 skipped (numpy: the
+PSG referee test and the new `tests/test_m5_sweep_compare.py`), 13 s; CPython 3.14: 228 passed, 1
+skipped (the new test: Pillow is missing from the venv), 6 s. The new test needs numpy and Pillow, so it
+was run by hand under the system python3 (it passes there, and the old `best_frame` picks the wrong
+frame on the same data). `ruff check`: the same 2 errors as before (`scripts/psg_compare.py` C401,
+`src/pcengine_python/psg/chip.py` E501); `ruff format --check`: the same 3 files as before
+(`scripts/m2_ours.py`, `scripts/m5_sweep.py` which was already unformatted at HEAD, and `psg/chip.py`).
+The sweep itself runs the board under PyPy for every card.
 
 ## Reproducing
 

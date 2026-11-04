@@ -188,3 +188,21 @@ sprites on and against Beetle PCE. After Burner II at 600 frames: Beetle 1.0000 
 before and after; not explained here (the board agrees with Beetle). The first attempt of this gate
 passed the `.7z` files as cards (the file is read in place, not unpacked): every picture came out
 black and "identical"; the figures above are from the repeated run.
+
+## Replay on f1a2f5a (2026-11-04)
+
+The six Mednafen runs repeated with the "Full" flags and `--check-reads` on the current code
+(f1a2f5a changed VDC behaviour: a cut-short VDW now runs the SAT transfer, both layers off draw the
+backdrop). Fresh traces, 20 M instructions for R-Type I and 5 M for the others, deleted after each run.
+
+| Game | Equal before the first difference | First difference | Same as 2026-10-29 |
+| --- | --- | --- | --- |
+| R-Type I | **20,000,000** | none; 668 entries, 1,390 waits adopted | yes |
+| Gradius | 107,737 | IRQ1: Mednafen enters at `E11C`, the board continues at `EB66` (U21) | yes |
+| Final Soldier | 630,583 | an interrupt entry one instruction apart: Mednafen `E29A`, board `E094` (U21) | yes |
+| After Burner II | 187 | clock: Mednafen 24,595, board 25,618 at the SAT-transfer hold (U32) | yes |
+| Bomberman '94 | 343,164 | register A and P after `E1B0`: Mednafen `00`, board `01` (U21 resync) | yes |
+| Bonk's Adventure | 235,057 | `RTI` returns to `C8D1`, Mednafen to `C8CE` (U21) | yes |
+
+No VDC or VCE read value differed in any of the six (no `--check-reads` line printed). The closing
+reading of the exit is in [m5-record.md](m5-record.md), "How the lockstep exit closes".

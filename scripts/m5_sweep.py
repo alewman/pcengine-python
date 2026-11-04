@@ -61,6 +61,26 @@ def extract(archive: Path, into: Path) -> Path:
     return found[0]
 
 
+def best_frame_exact(pics, ours, dxs, dys, prefer):
+    """`cmp.best_frame`, but ties are broken on the full picture, not the 1-in-3 sample.
+
+    `best_alignment` scores a third of the pixels, so on a mostly flat picture several (frame, dx)
+    pairs score a full 1.0 and the first one wins, even when the right frame differs from it in a
+    few dozen pixels (Formation Soccer at 300: frame 297 at dx 197 beat frame 300 at dx 14 and the
+    card read as NEAR; M5 record). Every candidate within 0.5 % of the best sampled share is
+    scored on all pixels and rows, and the best of those is the answer."""
+    scored = [(cmp.best_alignment(pic, ours, dxs, dys, prefer), n) for n, pic in pics.items()]
+    top = max(a[0] for a, _ in scored)
+    best = None
+    for (share, dx, dy), n in scored:
+        if share < top - 0.005:
+            continue
+        px, rows, _, _ = cmp.stats(pics[n], ours, dx, dy)
+        if best is None or (rows, px) > best[0]:
+            best = ((rows, px), (share, dx, dy), n)
+    return best[1], best[2]
+
+
 def compare(ours_pkl: Path, refs: Path, target: int) -> dict:
     ours = cmp.ours_array(pickle.loads(ours_pkl.read_bytes())["rows"])
     dys = range(-2, 3)
@@ -73,7 +93,7 @@ def compare(ours_pkl: Path, refs: Path, target: int) -> dict:
         if not pics:
             out[name] = None
             continue
-        (_, dx, dy), n = cmp.best_frame(pics, ours, wide, dys, prefer)
+        (_, dx, dy), n = best_frame_exact(pics, ours, wide, dys, prefer)
         px, rows, first, total = cmp.stats(pics[n], ours, dx, dy)
         out[name] = {"frame": n, "dx": dx, "dy": dy, "px": round(px, 4), "rows": round(rows, 4),
                      "first": first, "total": total}  # fmt: skip
