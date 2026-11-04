@@ -149,6 +149,8 @@ Covell's own data cannot separate them; the hardware spread of 2.4 dots against 
 A tier-1 observation that isolates the interrupt entry (a cycle-exact instruction at known
 vblank phase) would close it; the photographs of the 2-8 cycle groups do not.
 
+**Update 2026-11-04 (huc6280-python issue 0003, U25 there):** the core's poll point is now a switch, `irq_poll_cycle` (`second_to_last` default, `last`, `mednafen`). Run on this board through the core's working tree: Covell at vblank -8/-9/-10, RAM and ROM, spread 3.8-7.6 dots in every mode and position (default -9/-10 ROM 3.8, `last` -10 RAM/ROM 4.2), never inside 2.4; the poll point is not the cause of the two-level quantum. Mednafen lockstep: `last` stops earlier in all six games; `mednafen` (timer taken live) moves Final Soldier from 630,583 to 830,985 and nothing else. No mode adopted, pin unchanged (detail: huc6280-python docs/issues/0003).
+
 ### MAME instruction-stream lockstep (tier 5), `scripts/mame_lockstep.py`
 
 MAME's 2.1 M-instruction trace of the same ROM (`tests/mame_traces/`, not copied) against the board,
@@ -243,7 +245,7 @@ console and none was guessed silently: each has a named default in code with a `
 
 | # | Entry | Default and tier |
 | --- | --- | --- |
-| U21 | Where inside a CPU cycle a device sees the access, and where the VDC/VCE stretch cycle goes | the base cycle elapses, then the access, then the stretch (tier 5 convention); Covell's photographs place it |
+| U21 | Where inside a CPU cycle a device sees the access, and where the VDC/VCE stretch cycle goes | the base cycle elapses, then the access, then the stretch (tier 5 convention); Covell's photographs place it. The core's poll point was tried as a switch (core U25, issue 0003): no mode closes Covell's spread; default kept |
 | U22 | The dot positions of the VDC's line events (display start, line-counter step; the vblank test is U19) | Mednafen's, restated in master clocks (tier 5) |
 | U23 | Reads of the mirrored VRAM half | return 0 (Mednafen's zero-filled array; pcetech says "sometimes corrupted") |
 | U24 | Delay from the timer's enabling write to its first tick | one full period, 3072 master clocks (MAME, Mednafen); the prescaler reset itself is tier 3 |

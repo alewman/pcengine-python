@@ -133,7 +133,7 @@ hardware unless noted):
 | U18 | HuCard access times and mirroring of non-power-of-2 images (384K known only from emulators); boards of the 25 unlisted aftermarket images | emulators; running | by running |
 | U19 | IRQ sampling cycle, the dot of the vblank flag; Covell: Mednafen's VSync "triggers too late" | tier 1 photo, qualitative | default -8 kept; best fit -10/-9 (mean +0.6 dots, worst +3.8); no position closes the 2.4-dot spread (the wait loop's 4-dot interrupt quantum is in ours only); M1 closed as provisional 2026-11-04, [m1-record.md](m1-record.md) |
 | U20 | Block-transfer cycle counts with VRAM/IO targets | Covell X-cycle photos | M1, provisional |
-| U21 | Where inside a CPU cycle a device sees the access; where the VDC/VCE stretch cycle goes | Covell photographs (tier 1) | built as "base cycle, access, stretch"; to be placed by the photographs |
+| U21 | Where inside a CPU cycle a device sees the access; where the VDC/VCE stretch cycle goes | Covell photographs (tier 1) | built as "base cycle, access, stretch"; to be placed by the photographs. 2026-11-04: the core's poll point (`irq_poll_cycle`, core U25) tried in three modes: Covell spread stays 3.8+ dots, none adopted |
 | U22 | Dot positions of the VDC's line events (display start, vblank test, line-counter step) | emulators (tier 5) | Mednafen's, in master clocks |
 | U23 | Reads of the mirrored half of VRAM | pcetech: "sometimes corrupted" | return 0 |
 | U25 | VRAM -> VRAM DMA speed and when it may run | emulators (tier 5): two dots a word; paused during the display | built that way (M2); the CPU side of it is U30 |
