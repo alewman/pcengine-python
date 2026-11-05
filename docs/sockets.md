@@ -3,7 +3,8 @@
 Aubrey's shape rule (2026-10-23): follow the Sega console pattern. `pcengine-python` is the **base
 board with documented sockets**; the CD family and (probably) the SuperGrafx are **separate
 add-on boards** that pin it by git revision and nothing is copied: `pcenginecd-python` and
-`supergrafx-python` (working names; **not created in this phase**). The pattern was read, read-only,
+`supergrafx-python` (working names; `supergrafx-python` was created on 2026-11-05, local, see
+[m6-status.md](m6-status.md); `pcenginecd-python` is **not created**). The pattern was read, read-only,
 from `megadrive-python/docs/expansion-sockets.md` (nine sockets, built on branch
 `expansion-sockets`, merged as PR #6 with 0 sweep rows moved), `segacd-python/docs/sockets.md` and
 `sega32x-python/docs/handoff-brief.md`.
@@ -106,3 +107,17 @@ The SuperGrafx needs: sockets 3 (VPC at `$FF:0008-000F`, VDC2 at `$0010-0017`, m
 32 bytes in native mode), 7, 8, 12, 6 (VDC2's IRQ joins IRQ1, [hw: sgxtech, "VDC #2 interrupts"]),
 RAM 32 KiB, `ST0-ST2` steered to VDC1 or VDC2 by the VPC [hw: sgxtech], the compat switch, S-EXP.
 The Sega lesson to apply before freezing: have both add-ons' Phase 0s audit this list.
+
+## SuperGrafx: what the socket audit found (2026-11-05, M6)
+
+`supergrafx-python` was the first add-on built on these sockets. Of the five sockets docs/sockets.md
+named for it, four worked as drawn (3 page claims over the VDC page, the machine row's RAM size, 7
+`PixelPath` handed a list of rows, 12 `Vdc` instances without module state) and **one was a table
+field nothing read**: `Machine.vdc_count`. The board built one VDC, stepped one VDC and ORed one
+IRQ1. That is the Sega lesson again (the board owns the clock; a device that needs time goes
+through it) and the fix is the same size as the finding: `Board.vdcs`, one instance per
+`vdc_count`, all stepped/synced/read by the scheduler, IRQ1 their wired-OR
+([issues/0001](issues/0001-second-vdc-not-run-by-the-board.md)). A second finding that is **not**
+a socket: `ST0-ST2` are indistinguishable from stores to `$FF:0000/2/3` on the bus, and the VPC
+must steer only them; the add-on reads the core's private `_opcode` until huc6280-python publishes
+one.

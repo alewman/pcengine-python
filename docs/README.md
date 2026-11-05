@@ -15,6 +15,7 @@ Read in this order.
 | [validation.md](validation.md) | Every oracle by tier with pins and provenance; what ran here; the detector comparison |
 | [mame-oracle.md](mame-oracle.md) | The verified MAME 0.285 recipe, output format, seven traps |
 | [handoff-brief.md](handoff-brief.md) | Decisions, the embedding contract for huc6280-python, 8 milestones with judges, U and C lists, 14 open decisions |
+| [m6-status.md](m6-status.md) | **Milestone 6 status** (the SuperGrafx add-on, `supergrafx-python`, local): the socket audit result, issue 0001, the five cards, the measured fallback; the record itself is in the add-on repository |
 | [m5-record.md](m5-record.md) | **Milestone 5, sweep half**: the 179-card sweep against Mesen2 and Beetle (162 identical, 6 near, 11 different, then two board fixes), causes per card, the 26 unlisted images, the lockstep exit stated honestly, the measured speed (U17), the PyPy gate; U36, C30, C31 |
 | [m5-lockstep-record.md](m5-lockstep-record.md) | **Milestone 5, lockstep half**: the board against MAME and Mednafen instruction by instruction; the Covell ROM closes against Mednafen, six games' first differences named |
 | [m4-record.md](m4-record.md) | **Milestone 4 as built**: the PSG, the referee comparison (MAME, Mednafen), C13-C24, the timer finished |

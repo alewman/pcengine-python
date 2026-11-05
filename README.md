@@ -31,7 +31,8 @@ Chris Covell's CPU timing test.
 
 `pcengine-python` is the base board; **CD-ROM² / Super CD-ROM² / Arcade Card** (`pcenginecd-python`)
 and probably the **SuperGrafx** (`supergrafx-python`) are separate boards that pin it through sockets
-([docs/sockets.md](docs/sockets.md)). Neither add-on repository exists yet.
+([docs/sockets.md](docs/sockets.md)). `supergrafx-python` exists since 2026-11-05 (local; pins this board at
+5d9dc86; see [docs/m6-status.md](docs/m6-status.md)); `pcenginecd-python` does not exist yet.
 
 | Machine | Phase |
 | --- | --- |
