@@ -1,5 +1,8 @@
 # pcengine-python
 
+Public at https://github.com/alewman/pcengine-python since 2026-11-05 (published by Claude Sonnet 5.5
+for alewman; no ROMs, System Card or other BIOS are included, bring your own).
+
 A readable, pure-Python emulator of the **PC Engine / TurboGrafx-16**, to be built as a board on the
 family's cores: [huc6280-python](https://github.com/alewman/huc6280-python) for the HuC6280's instruction set (built in
 parallel; not read by this phase). The core owns the CPU; this repository will own everything around

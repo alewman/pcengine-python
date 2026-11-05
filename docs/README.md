@@ -1,5 +1,7 @@
 # Documents
 
+Public repository: https://github.com/alewman/pcengine-python (since 2026-11-05).
+
 Read in this order.
 
 | Document | What it holds |
