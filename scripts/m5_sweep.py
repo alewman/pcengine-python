@@ -121,10 +121,17 @@ def one(card: Path, scratch: Path, jobs: int) -> list[dict]:
             m2_refs_jobs = [(n, w) for n in range(target - WINDOW, target + WINDOW + 1)
                             for w in ("mesen_sprites", "beetle")]  # fmt: skip
             with concurrent.futures.ThreadPoolExecutor(jobs) as pool:
-                list(pool.map(lambda j: m2_refs.run_one(image, refs, j[0], j[1]), m2_jobs(refs, m2_refs_jobs)))
+                list(
+                    pool.map(
+                        lambda j: m2_refs.run_one(image, refs, j[0], j[1]),
+                        m2_jobs(refs, m2_refs_jobs),
+                    )
+                )
             pkl = ours if target == TARGETS[0] else ours.with_name(f"ours-{target}.pkl")
             r = compare(pkl, refs, target)
-            r.update(card=card.name, tg16=tg16, size=image.stat().st_size, ours_seconds=round(speed, 1))
+            r.update(
+                card=card.name, tg16=tg16, size=image.stat().st_size, ours_seconds=round(speed, 1)
+            )
             rows.append(r)
     except Exception as e:  # recorded, not hidden
         rows.append({"card": card.name, "tg16": tg16, "error": f"{type(e).__name__}: {e}"})
@@ -147,8 +154,14 @@ def main() -> int:
     p.add_argument("--only", default="")
     p.add_argument("--names", type=Path, help="file of card file names, one per line")
     p.add_argument("--jobs", type=int, default=6)
-    p.add_argument("--targets", type=int, nargs=2, default=TARGETS, metavar=("A", "B"),
-                   help="the two frames compared (default 300 600; pass 2 uses later ones)")
+    p.add_argument(
+        "--targets",
+        type=int,
+        nargs=2,
+        default=TARGETS,
+        metavar=("A", "B"),
+        help="the two frames compared (default 300 600; pass 2 uses later ones)",
+    )
     p.add_argument("--cards", type=int, default=3, help="cards in parallel")
     a = p.parse_args()
     TARGETS = tuple(a.targets)

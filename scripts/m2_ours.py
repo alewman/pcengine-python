@@ -49,7 +49,9 @@ def main() -> int:
     p.add_argument("out", type=Path)
     p.add_argument("--frames", type=int, default=300)
     p.add_argument("--tg16", action="store_true")
-    p.add_argument("--then", type=int, default=0, help="keep running to this frame, save OUT-<n>.pkl")
+    p.add_argument(
+        "--then", type=int, default=0, help="keep running to this frame, save OUT-<n>.pkl"
+    )
     p.add_argument("--drop-vanished-irq", action="store_true", help="core issue 0002 experiment")
     a = p.parse_args()
     machine = TURBOGRAFX_16 if a.tg16 else PC_ENGINE

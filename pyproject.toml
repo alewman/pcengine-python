@@ -11,13 +11,13 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "alewman" }]
-# The CPU core, huc6280-python, pinned by git commit (a local repository until it is public):
+# The CPU core, huc6280-python, pinned by git commit (v0.1.0 on GitHub):
 # a379416 = Release 0.1.0 over 1884f23 (issue 0002: an interrupt whose source vanished before
 # entry is no longer entered through IRQ2), over 7f789e4 (block-transfer zero reads over
 # $0800-$17FF, issue 0001), over 143eb29 (rungs 0-5, MAME-replayed 21.0M instructions with 0
 # register divergences). Repin deliberately and rerun the gate (docs/m1-record.md).
 dependencies = [
-    "huc6280-python @ git+file:///data/emu/huc6280-python@a379416d9c753075200a28de2c40d30de18f04d0",
+    "huc6280-python @ git+https://github.com/alewman/huc6280-python@a379416d9c753075200a28de2c40d30de18f04d0",
 ]
 
 [project.optional-dependencies]
@@ -25,6 +25,7 @@ dev = [
     "pytest>=8",
     # the PSG referee comparison (scripts/psg_compare.py, tests/test_psg_referees.py)
     "numpy",
+    "Pillow",
     # Pinned: `ruff format --check` must see the formatter the tree was formatted with.
     "ruff==0.16.8",
 ]

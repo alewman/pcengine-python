@@ -1,7 +1,7 @@
 # pcengine-python
 
 A readable, pure-Python emulator of the **PC Engine / TurboGrafx-16**, to be built as a board on the
-family's cores: [huc6280-python](../huc6280-python) for the HuC6280's instruction set (built in
+family's cores: [huc6280-python](https://github.com/alewman/huc6280-python) for the HuC6280's instruction set (built in
 parallel; not read by this phase). The core owns the CPU; this repository will own everything around
 it: the 21-bit physical decode and the hardware page, the master clock and the VDC/VCE wait states,
 the timer, interrupt controller and I/O port, the **HuC6270 VDC**, the **HuC6260 VCE**, the

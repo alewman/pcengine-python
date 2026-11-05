@@ -170,7 +170,7 @@ def report(name: str, ours: np.ndarray, theirs: np.ndarray, start: int, state, i
     while first + run < n and (ours[first + run] != theirs[first + run]).any():
         run += 1
     print(f"   that stretch lasts {run} step(s); differing steps in 10k-step blocks: "
-          f"{len(set(int(d) // 10000 for d in differ))} of {n // 10000 + 1}")  # fmt: skip
+          f"{len({int(d) // 10000 for d in differ})} of {n // 10000 + 1}")  # fmt: skip
 
 
 def between_referees(records, start: int, steps: int) -> None:
