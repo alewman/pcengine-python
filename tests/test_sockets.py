@@ -167,3 +167,40 @@ def test_psg_writes_through_the_bus_reach_the_audio_source_list_with_their_time(
     left = [s[0] for s in samples]
     assert max(left) > 0 > min(left)  # a square wave about the centre
     assert board.cpu_io.buffer.value == 0x9F  # the I/O buffer saw the last write
+
+
+# --- 12. Instances: a machine row with two VDCs (the SuperGrafx add-on, docs/issues/0001) ---------
+
+
+def test_one_vdc_is_the_default_and_the_board_holds_a_list():
+    board = Board()
+    assert len(board.vdcs) == 1 and board.vdc is board.vdcs[0]
+
+
+def test_a_second_vdc_is_run_synced_read_for_pixels_and_ored_into_irq1():
+    from dataclasses import replace
+
+    from pcengine_python.machine import PC_ENGINE
+
+    seen = []
+
+    class Spy:
+        def mix(self, timing, rows):
+            seen.append((timing.line, len(rows), len(rows[0]), len(rows[1])))
+            return rows[0]
+
+    board = Board(replace(PC_ENGINE, vdc_count=2), pixel_path=Spy())
+    first, second = board.vdcs
+    assert first is not second and board.vdc is first
+    cpu = ScriptedCpu(board)
+    # the board itself decodes only VDC 1; run a few lines and check VDC 2 was synced with it
+    for _ in range(3 * LINE_CLOCKS // 12):
+        cpu.idle()
+    assert seen and all(n == 2 for _, n, _, _ in seen)
+    # IRQ1 is the wired-OR of both: raise VDC 2's status bit and the line follows
+    assert board.lines()[0] is False
+    second.status |= 0x20  # VD
+    assert board.lines()[0] is True
+    second.status = 0
+    first.status |= 0x04  # RR
+    assert board.lines()[0] is True

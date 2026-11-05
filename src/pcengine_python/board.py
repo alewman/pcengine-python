@@ -74,13 +74,21 @@ class Board:
 
         self.irq2 = IrqLine("IRQ2")
         self.vce = Vce(power_on=rng)
-        self.vdc = Vdc(
-            hold=self.hold,
-            power_on=rng,
-            vblank_dots=vblank_dots,
-            vertical_at_line_start=vertical_at_line_start,
-            dma_resumes=dma_resumes,
-        )
+        # One VDC instance per `machine.vdc_count` (docs/sockets.md socket 12). `self.vdc` is the
+        # first; the others are run, synced and read for pixels and IRQ1 by the board, but have
+        # no decode of their own: an add-on (the SuperGrafx's VPC) claims their pages.
+        self.vdcs = [
+            Vdc(
+                hold=self.hold,
+                power_on=rng,
+                vblank_dots=vblank_dots,
+                vertical_at_line_start=vertical_at_line_start,
+                dma_resumes=dma_resumes,
+            )
+            for _ in range(machine.vdc_count)
+        ]
+        self.vdc = self.vdcs[0]
+        self._extra_vdcs = self.vdcs[1:]
         self.psg = Psg()
         self.cpu_io = CpuIo(
             self.psg,
@@ -111,9 +119,10 @@ class Board:
                 for first, last in device.claims():
                     self.pages.claim(first, last, device)
 
-        self.vdc.hsync(self.timeline.line_start, self.vce.dot_divider)
-        if self.timeline.line >= self.timeline.frame_lines - 3:
-            self.vdc.vsync()
+        for vdc in self.vdcs:
+            vdc.hsync(self.timeline.line_start, self.vce.dot_divider)
+            if self.timeline.line >= self.timeline.frame_lines - 3:
+                vdc.vsync()
 
     # -- the CPU ------------------------------------------------------------------------------
 
@@ -176,36 +185,46 @@ class Board:
             line_at = tl.next_line_start
             row_at = self._row_end
             vdc_at = vdc.next_event()
+            for other in self._extra_vdcs:
+                at = other.next_event()
+                if at is not None and (vdc_at is None or at < vdc_at):
+                    vdc_at = at
             timer_at = io.next_event()
             if row_at is not None and row_at <= target and row_at <= line_at:
                 self._end_row(row_at)
             elif line_at <= target and (vdc_at is None or line_at <= vdc_at):
                 self._new_line(line_at)
             elif vdc_at is not None and vdc_at <= target:
-                vdc.catch_up(vdc_at)
+                for chip in self.vdcs:
+                    chip.catch_up(vdc_at)
             elif timer_at is not None and timer_at <= target:
                 io.catch_up(timer_at)
             else:
                 break
-        vdc.catch_up(target)
+        for chip in self.vdcs:
+            chip.catch_up(target)
         io.catch_up(target)
 
     def _new_line(self, at: int) -> None:
-        tl, vdc = self.timeline, self.vdc
-        vdc.catch_up(at)
+        tl = self.timeline
+        for vdc in self.vdcs:
+            vdc.catch_up(at)
         self._row_timing = tl.timing()  # the line that is ending; its row ends 237 clocks later
         self._row_end = at + HSYNC_CLOCKS
         tl.advance()
-        vdc.hsync(at, self.vce.dot_divider)
-        if tl.line == tl.frame_lines - 3:
-            vdc.vsync()  # [emu: Mednafen] after the hsync of the same line
+        for vdc in self.vdcs:
+            vdc.hsync(at, self.vce.dot_divider)
+            if tl.line == tl.frame_lines - 3:
+                vdc.vsync()  # [emu: Mednafen] after the hsync of the same line
 
     def _end_row(self, at: int) -> None:
         """The previous line's picture row ends as this line's sync does: hand it to the capture
         before the VDC starts the new line's geometry (events at `at` itself wait)."""
-        self.vdc.catch_up(at - 1)
+        for vdc in self.vdcs:
+            vdc.catch_up(at - 1)
         timing = self._row_timing
-        self.capture.finish_line(timing, [self.vdc.pixel_row(LINE_CLOCKS // timing.dot_divider)])
+        dots = LINE_CLOCKS // timing.dot_divider
+        self.capture.finish_line(timing, [vdc.pixel_row(dots) for vdc in self.vdcs])
         self._row_end = None
 
     # -- interrupts ---------------------------------------------------------------------------
@@ -216,7 +235,8 @@ class Board:
 
     def lines(self) -> tuple[bool, bool, bool]:
         """(IRQ1, IRQ2, TIQ) as the interrupt controller sees them, before the mask."""
-        return (self.vdc.irq1, self.irq2.level, self.cpu_io.tiq)
+        # IRQ1 is shared by every VDC (wired-OR; each is acknowledged by reading its status).
+        return (any(v.irq1 for v in self.vdcs), self.irq2.level, self.cpu_io.tiq)
 
     def _deliver_lines(self, force: bool = False) -> None:
         lines = self.lines()
