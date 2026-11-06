@@ -121,3 +121,10 @@ through it) and the fix is the same size as the finding: `Board.vdcs`, one insta
 a socket: `ST0-ST2` are indistinguishable from stores to `$FF:0000/2/3` on the bus, and the VPC
 must steer only them; the add-on reads the core's private `_opcode` until huc6280-python publishes
 one.
+
+## Add-on finding: the port device is caught up (2026-11-06, M7/M8)
+
+`pcenginecd-python` found that the board never called `PortDevice.catch_up`, so a port device could not
+raise IRQ2 on its own. `Board._run_to` now calls `self.port.catch_up(target)` after the VDCs and the
+timer, every advance ([issues/0002](issues/0002-port-device-never-caught-up.md)); the add-on's scheduler
+subclass is no longer needed.

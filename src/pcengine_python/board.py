@@ -204,6 +204,8 @@ class Board:
         for chip in self.vdcs:
             chip.catch_up(target)
         io.catch_up(target)
+        if self.port is not None:
+            self.port.catch_up(target)  # socket 5, issue 0002: a port device acts by itself
 
     def _new_line(self, at: int) -> None:
         tl = self.timeline

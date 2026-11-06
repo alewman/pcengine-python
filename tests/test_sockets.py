@@ -132,6 +132,30 @@ def test_a_port_device_is_caught_up_by_the_board_when_it_asks():
     assert port.reads[0][1] == board.mclk
 
 
+def test_a_port_device_runs_with_the_board_clock_and_can_raise_irq2_by_itself():
+    """Issue 0002: the board used to call `catch_up` on the VDCs and the timer only, so a port
+    device (a CD drive's REQ, an ADPCM end) saw time at its own register accesses and could not
+    raise IRQ2 between them."""
+
+    class Alarm(FakePort):
+        due = 5000
+
+        def catch_up(self, mclk: int) -> None:
+            super().catch_up(mclk)
+            if mclk >= self.due:
+                self.set_irq2(True)
+
+    port = Alarm([(0x1FF8, 0x1FF8)])
+    board = Board(port=port)
+    assert not board.irq2.level
+    board.advance(4000)
+    assert port.caught_up[-1] == 4000 and not board.irq2.level
+    board.advance(1000)  # no access to the device at all: the clock alone reaches it
+    assert port.caught_up[-1] == 5000
+    assert board.irq2.level
+    assert board.lines()[1] is True
+
+
 def test_instances_not_modules_two_boards_two_vdcs_do_not_share_state():
     a, b = Board(), Board()
     a.vdc.vram[5] = 0x1234
