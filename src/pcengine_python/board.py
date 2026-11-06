@@ -26,6 +26,7 @@ from pcengine_python.machine import (
     PC_ENGINE,
     Machine,
 )
+from pcengine_python.mixer import Mixer
 from pcengine_python.pagetable import PageTable, Ram
 from pcengine_python.psg import Psg
 from pcengine_python.sockets import (
@@ -103,6 +104,7 @@ class Board:
         self.slot = CardSlot(card)  # type: ignore[arg-type]
         self.port = port
         self.audio_sources = [self.psg]
+        self.mixer = Mixer(self.audio_sources)
 
         self.timeline = Timeline(machine, self.vce, start_line, start_offset)
         self.capture = Capture(self.vce, pixel_path)
@@ -123,6 +125,10 @@ class Board:
             vdc.hsync(self.timeline.line_start, self.vce.dot_divider)
             if self.timeline.line >= self.timeline.frame_lines - 3:
                 vdc.vsync()
+
+    def take_audio(self) -> list[tuple[int, int]]:
+        """Mixed stereo samples (44.1 kHz) of every `audio_sources` entry up to the clock now."""
+        return self.mixer.take(self.mclk)
 
     # -- the CPU ------------------------------------------------------------------------------
 

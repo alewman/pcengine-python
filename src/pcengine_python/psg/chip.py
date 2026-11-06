@@ -83,6 +83,7 @@ class Psg:
     silent_units = 30
     #: False skips the host-rate output (the step stream and the listeners are unaffected).
     render_audio = True
+    applies_gain = True  # the mixer (mixer.py) must not apply `gain` a second time
     #: C17: noise frequency NF' = 0 ("undefined" in the manual). MAME clocks the shift register
     #: every step; Mednafen every 32. 32 here.
     noise_zero_period = 32

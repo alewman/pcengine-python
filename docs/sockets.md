@@ -128,3 +128,10 @@ one.
 raise IRQ2 on its own. `Board._run_to` now calls `self.port.catch_up(target)` after the VDCs and the
 timer, every advance ([issues/0002](issues/0002-port-device-never-caught-up.md)); the add-on's scheduler
 subclass is no longer needed.
+
+## Add-on finding: the audio sources are mixed (2026-11-06, M8)
+
+Nothing consumed `Board.audio_sources` ([issues/0003](issues/0003-nothing-consumed-audio-sources.md)).
+`pcengine_python/mixer.py` sums them (hold to 44.1 kHz, gain unless the source applies its own, clip) and
+`Board.take_audio()` returns what every source has produced up to the board clock. A source must emit one
+stereo sample per 1/`rate_hz` second and zeros when silent.
