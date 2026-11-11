@@ -11,14 +11,16 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "alewman" }]
-# The CPU core, huc6280-python, pinned by git commit (v0.2.0 on GitHub):
-# f31b630 = Release 0.2.0 over 87e42f6 (public HuC6280.opcode), 34f1570 (irq_poll_cycle, U25,
+# The CPU core, huc6280-python, pinned by git commit (three commits past v0.2.0 on GitHub):
+# 9c47c98 = issue 0004 (decimal ADC/SBC with an invalid BCD digit follow Mednafen's formulas by
+# default, Mesen's as decimal_formula="mesen"; valid digits, binary mode, V and cycles unchanged)
+# over f31b630 = Release 0.2.0 over 87e42f6 (public HuC6280.opcode), 34f1570 (irq_poll_cycle, U25,
 # default unchanged) and 1a3377f (issue 0003), over a379416 = Release 0.1.0 (issue 0002: an
 # interrupt whose source vanished before entry is no longer entered through IRQ2; issue 0001:
 # block-transfer zero reads over $0800-$17FF; rungs 0-5, MAME-replayed 21.0M instructions with
 # 0 register divergences). Repin deliberately and rerun the gate (docs/m1-record.md).
 dependencies = [
-    "huc6280-python @ git+https://github.com/alewman/huc6280-python@f31b630399b713c870fb4fa5e690537a99364803",
+    "huc6280-python @ git+https://github.com/alewman/huc6280-python@9c47c98d4310d55935906607abef0f69607d0e7a",
 ]
 
 [project.optional-dependencies]
