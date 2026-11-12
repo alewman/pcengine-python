@@ -22,8 +22,12 @@ import argparse
 import ctypes
 import os
 import struct
+import sys
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import presses as press_script
 
 ROOT = Path(__file__).resolve().parents[1]
 LIBS = (
@@ -64,8 +68,10 @@ class PceConfig(ctypes.Structure):
     _fields_ = [("raw", ctypes.c_ubyte * 8080)]
 
 
-def pce_config(no_sprites: bool = False) -> PceConfig:
+def pce_config(no_sprites: bool = False, pad: bool = False) -> PceConfig:
     raw = bytearray(8080)
+    if pad:  # Port1.Type = ControllerType::PceController (39; offset 988 measured 2026-11-12)
+        struct.pack_into("<I", raw, 988, 39)
     struct.pack_into("<I", raw, 5960, 2)  # CdRomType = Arcade (the header's default)
     struct.pack_into("<I", raw, 5968, 1)  # RamPowerOnState = AllZeros: deterministic
     for i in range(8):  # ChannelVol[6], CdAudioVolume, AdpcmVolume
@@ -84,7 +90,13 @@ def pce_config(no_sprites: bool = False) -> PceConfig:
 
 
 def run(
-    lib: Path, rom: Path, frames: int, home: Path, timeout: float, no_sprites: bool = False
+    lib: Path,
+    rom: Path,
+    frames: int,
+    home: Path,
+    timeout: float,
+    no_sprites: bool = False,
+    presses: list | None = None,
 ) -> tuple[str, float]:
     m = ctypes.CDLL(str(lib))
     m.InitializeEmu.argtypes = [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p] + [
@@ -100,13 +112,13 @@ def run(
     m.InitDll()
     m.InitializeEmu(str(home.resolve()).encode(), None, None, True, True, True, True)
     m.SetPcEngineConfig.argtypes = [PceConfig]
-    m.SetPcEngineConfig(pce_config(no_sprites))
+    m.SetPcEngineConfig(pce_config(no_sprites, pad=bool(presses)))
     m.Pause()
     m.SetEmulationFlag(CONSOLE_MODE, True)
     if not m.LoadRom(str(rom.resolve()).encode(), b""):
         raise SystemExit("LoadRom failed")
     m.InitializeDebugger()
-    lua = LUA.format(frames=frames, done=DONE).encode()
+    lua = (LUA.format(frames=frames, done=DONE) + press_script.mesen_lua(presses or [])).encode()
     script = m.LoadScript(b"frame.lua", str(home.resolve()).encode(), lua, -1)
     m.SetEmulationFlag(MAXIMUM_SPEED, True)
     began = time.monotonic()
@@ -151,6 +163,13 @@ def main() -> int:
     p.add_argument("--home", type=Path, default=ROOT / "tests/runs/mesen-home")
     p.add_argument("--no-sprites", action="store_true", help="Mesen2 DisableSprites")
     p.add_argument("--width", type=int, default=0, help="frame width when it is ambiguous")
+    p.add_argument(
+        "--press",
+        action="append",
+        default=[],
+        metavar="BUTTONS@FRAME+HOLD",
+        help="pad 1 input (scripts/presses.py); connects a pad, which no --press leaves out",
+    )
     p.add_argument("--timeout", type=float, default=120.0, help="wall-clock seconds")
     p.add_argument(
         "--lib",
@@ -161,7 +180,9 @@ def main() -> int:
     lib = a.lib or next((x for x in LIBS if x.exists()), None)
     if lib is None:
         raise SystemExit("no MesenCore.so: build it (docs/validation.md) or pass --lib")
-    log, wall = run(lib, a.rom, a.frames, a.home, a.timeout, a.no_sprites)
+    log, wall = run(
+        lib, a.rom, a.frames, a.home, a.timeout, a.no_sprites, press_script.parse(a.press)
+    )
     if DONE not in log:
         print(f"timed out after {wall:.1f} s")
         return 1

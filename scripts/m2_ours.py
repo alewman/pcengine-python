@@ -23,6 +23,9 @@ from pcengine_python.cards import card_from_path
 from pcengine_python.machine import PC_ENGINE, TURBOGRAFX_16
 from pcengine_python.system import build
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import presses as press_script
+
 
 def dropping_core():
     """HuC6280 that does not take an interrupt whose every source has gone by the boundary.
@@ -53,9 +56,18 @@ def main() -> int:
         "--then", type=int, default=0, help="keep running to this frame, save OUT-<n>.pkl"
     )
     p.add_argument("--drop-vanished-irq", action="store_true", help="core issue 0002 experiment")
+    p.add_argument(
+        "--press",
+        action="append",
+        default=[],
+        metavar="BUTTONS@FRAME+HOLD",
+        help="pad 1 input (scripts/presses.py)",
+    )
     a = p.parse_args()
     machine = TURBOGRAFX_16 if a.tg16 else PC_ENGINE
-    board = Board(machine, card=card_from_path(a.card), pad=pads.Pad2())
+    pad = pads.Pad2()
+    presses = press_script.parse(a.press)
+    board = Board(machine, card=card_from_path(a.card), pad=pad)
     system = build(board, dropping_core() if a.drop_vanished_irq else None)
     began = time.monotonic()
     marks = [(a.frames, a.out)]
@@ -63,7 +75,8 @@ def main() -> int:
         marks.append((a.then, a.out.with_name(f"{a.out.stem}-{a.then}{a.out.suffix}")))
     done = 0
     for target, out in marks:
-        for _ in range(target - done):
+        for n in range(done, target):
+            pad.pressed = press_script.board_mask(press_script.held(presses, n))
             system.run_frame()
         done = target
         frame = board.capture.last_frame

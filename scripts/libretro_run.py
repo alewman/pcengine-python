@@ -27,6 +27,9 @@ import time
 import wave
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import presses as press_script
+
 ENV_SET_PIXEL_FORMAT = 10
 ENV_GET_SYSTEM_DIRECTORY = 9
 ENV_GET_SAVE_DIRECTORY = 31
@@ -75,11 +78,19 @@ def main() -> int:
     p.add_argument("--system", type=Path, default=Path("."))
     p.add_argument("--verbose", action="store_true", help="print the core's log format strings")
     p.add_argument("--option", action="append", default=[], metavar="KEY=VALUE", help="core option")
+    p.add_argument(
+        "--press",
+        action="append",
+        default=[],
+        metavar="BUTTONS@FRAME+HOLD",
+        help="pad 1 input (scripts/presses.py)",
+    )
     a = p.parse_args()
     lib = C.CDLL(str(a.core.resolve()))
     system = str(a.system.resolve()).encode()
     options = dict(o.split("=", 1) for o in a.option)
-    state = {"fmt": PF_0RGB1555, "frame": None, "audio": bytearray(), "frames": 0}
+    state = {"fmt": PF_0RGB1555, "frame": None, "audio": bytearray(), "frames": 0, "ran": 0}
+    presses = press_script.parse(a.press)
     keep = []
 
     ENV = C.CFUNCTYPE(C.c_bool, C.c_uint, C.c_void_p)
@@ -131,13 +142,19 @@ def main() -> int:
         state["audio"] += C.string_at(data, frames * 4)
         return frames
 
+    def pressed(port: int, device: int, index: int, button: int) -> int:
+        if port != 0 or device != 1 or not presses:  # RETRO_DEVICE_JOYPAD
+            return 0
+        down = press_script.held(presses, state["ran"])
+        return int(any(press_script.LIBRETRO[name] == button for name in down))
+
     callbacks = [
         ENV(env),
         VIDEO(video),
         SAMPLE(sample),
         BATCH(batch),
         POLL(lambda: None),
-        INPUT(lambda *x: 0),
+        INPUT(pressed),
     ]
     keep.extend(callbacks)
     lib.retro_set_environment(callbacks[0])
@@ -151,11 +168,14 @@ def main() -> int:
     if not lib.retro_load_game(C.byref(info)):
         print("retro_load_game failed")
         return 1
+    if presses:  # Beetle PCE reads no pad until one is plugged in (RETRO_DEVICE_JOYPAD)
+        lib.retro_set_controller_port_device(0, 1)
     av = SystemAV()
     lib.retro_get_system_av_info(C.byref(av))
     began = time.monotonic()
     for _ in range(a.frames):
         lib.retro_run()
+        state["ran"] += 1
     wall = time.monotonic() - began
     rate = int(av.timing.rate)
     print(

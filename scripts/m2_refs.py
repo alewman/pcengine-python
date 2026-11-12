@@ -21,7 +21,8 @@ ROOT = Path(__file__).resolve().parents[1]
 BEETLE = ROOT / "reference/src/beetle-pce/mednafen_pce_libretro.so"
 
 
-def run_one(card: Path, out: Path, frames: int, which: str) -> None:
+def run_one(card: Path, out: Path, frames: int, which: str, presses: tuple[str, ...] = ()) -> None:
+    """One detector to `frames`; `presses` are scripts/presses.py specs, given to it unchanged."""
     if which in ("mesen", "mesen_sprites"):
         name = "mesen_ns" if which == "mesen" else "mesen"
         flags = ["--no-sprites"] if which == "mesen" else []
@@ -32,6 +33,8 @@ def run_one(card: Path, out: Path, frames: int, which: str) -> None:
         cmd = [sys.executable, "-I", str(ROOT / "scripts/libretro_run.py"), str(BEETLE), str(card),
                "--frames", str(frames), "--png", str(out / f"beetle_{frames}.png"),
                "--system", str(out)]  # fmt: skip
+    for spec in presses:
+        cmd += ["--press", spec]
     subprocess.run(cmd, capture_output=True, check=False)
 
 
