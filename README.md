@@ -72,6 +72,8 @@ It needs `git` and `curl`. The wiki pages are live: a changed page is reported a
 | `scripts/mesen_run.py` | a card on Mesen2's `MesenCore.so` headless, frame to PNG (sets the PC Engine config the DLL lacks) |
 | `scripts/libretro_run.py` | a card or CD on a libretro core (Beetle PCE, Geargrafx) through a ctypes host |
 | `scripts/detectors_compare.py` | MAME, Mesen2 and Beetle PCE against each other on a card list |
+| `scripts/presses.py` | scripted pad input (`run@400+10`) in one spelling for the board, Mesen2 and Beetle PCE: `--press` on the picture scripts |
+| `scripts/state_roundtrip.py` | save states proven complete: a saved and loaded run against the run that was not interrupted, bus cycle for bus cycle ([docs/start-here.md](docs/start-here.md) "Save states") |
 
 Scripts need Python >= 3.11, Pillow for pictures, and the system's `mame`, `7z` and (for CDs) `chdman`.
 Run any Python that reads `reference/` with `python -I`.

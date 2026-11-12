@@ -50,11 +50,53 @@ pcengine_python/
   sockets.py     the Protocols and the test-only fakes
   pads.py        2-button, multitap, 6-button, mouse
   system.py      run_frame, the scheduler
+  state.py       save states: the whole console as bytes, and back
 ```
 
 with `huc6280-python` (the CPU core) pinned by git revision and nothing copied. Module state is
 forbidden (a second VDC is a second instance). The VDC and the PSG sit behind import-boundary tests so
 a later extraction (PC-FX for the VDC family; nothing for the PSG) is a move, not a rewrite.
+
+## Save states
+
+`pcengine_python.state` (the family's standard, first built for famicom-python): `save_state(system)`
+gives the whole console between two instructions as bytes, `load_state(system, data)` puts a system
+built the same way (machine row, card, add-on) into that state.
+
+```python
+from pcengine_python.state import load_state, save_state
+
+data = save_state(system)  # zlib-compressed JSON, 20-110 KiB for a HuCard
+load_state(another_system, data)  # the same card on the same machine; continues identically
+```
+
+- **What it is.** A walk of the object graph from the board: every attribute of every object of this
+  package (and of an add-on that has registered itself), as plain data. The CPU is saved as
+  huc6280-python's `CPUState`. Callables (the wiring) are not saved; loading writes into the
+  existing objects, so the wiring of the system loaded into stays as it was built.
+- **No ROM in a state.** An immutable `bytes` of 8 KiB or more is saved as its SHA-1 and length, and
+  loading refuses a system that holds other bytes there: that is how a state of another card is
+  recognised. A disc is named by its table of contents only (the add-on's `Disc.state_identity`).
+- **Refused, with a `StateError`:** another machine row, another card, another disc, an add-on that
+  is not imported, and a machine built another way (a state made with an Arcade Card loaded into a
+  machine without one). A state holds no code and can name only classes of the registered packages.
+- **The proof is equivalence** (`scripts/state_roundtrip.py`, `tests/test_state.py`): a run saved in
+  the middle of a frame and loaded into a fresh system, and into one that had run something else,
+  continues exactly as the run that was never interrupted: every CPU bus cycle (address, value,
+  direction, master clock), the picture, the mixed audio and the CPU's state of every frame after;
+  and the loaded system, saved at once, gives the same bytes back.
+- **Measured (2026-11-12, PyPy):** the 18 picture-gate titles, saved 148-2,477 instructions into
+  frame 300 with pad input before and after, 60 frames compared: 18 of 18 equal, on a fresh system
+  and on one that had run (states of 23-110 KiB). The add-ons' own runs are in their start-here.
+  Mapper cards (Street Fighter II', Populous, Tennokoe) are covered by unit tests of their registers
+  and RAM, not by a run of the real cards.
+- **For an add-on:** call `register_package("your_package")` in its `__init__`; give media classes
+  `STATE_FIXED = True` and a `state_identity()`; keep state in attributes that are data (numbers,
+  bytes, lists, dicts, deques, enums, dataclasses, objects of the package), not in closures. An
+  object that can appear while the machine runs must be a dataclass (the loader builds nothing else).
+- **Not promised:** a state is for the same revision of the code. The version number in the header
+  changes when the format does, not when a chip gains an attribute; a state from an older revision
+  may load and continue differently. Nothing here is a format other emulators read.
 
 ## Performance: correct, not fast
 

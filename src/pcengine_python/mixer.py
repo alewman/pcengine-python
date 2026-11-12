@@ -16,27 +16,32 @@ The reference for a source is its own stream at its own rate; this is a host-sid
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass, field
 
 OUTPUT_HZ = 44_100.0
 
 
+@dataclass
 class _Lane:
-    def __init__(self) -> None:
-        self.queue: list[tuple[float, float]] = []
-        self.carry = 0.0
+    """One source's samples at the output rate, waiting for the others (a value: state.py may
+    build one when it loads a state into a mixer that has not run yet)."""
+
+    queue: list[tuple[float, float]] = field(default_factory=list)
+    carry: float = 0.0
 
 
 class Mixer:
     def __init__(self, sources: list, output_hz: float = OUTPUT_HZ) -> None:
         self.sources = sources  # the board's list itself: add-ons append to it
         self.output_hz = output_hz
-        self._lanes: dict[int, _Lane] = {}
+        self._lanes: list[_Lane] = []  # one per source, in the sources' order (sources only grow)
 
     def take(self, mclk: int) -> list[tuple[int, int]]:
         """Mixed stereo samples at `output_hz` that every source has produced up to `mclk`."""
         lanes = []
-        for source in self.sources:
-            lane = self._lanes.setdefault(id(source), _Lane())
+        while len(self._lanes) < len(self.sources):
+            self._lanes.append(_Lane())
+        for source, lane in zip(self.sources, self._lanes, strict=True):
             lanes.append((source, lane))
             self._feed(source, lane, source.take_samples(mclk))
         if not lanes:
