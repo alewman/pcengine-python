@@ -12,6 +12,12 @@ and PyPy (183 tests; Covell's slow test too), After Burner II is identical to bo
 experiment flag, and the MAME lockstep is unchanged (first difference at instruction 2, `CSH`; with
 C7 and C14 overridden, 136,975 instructions, then the first vblank interrupt: m1-record.md).
 
+After the repin to the core's 9c47c98 (2026-11-11, its issue 0004: decimal `ADC`/`SBC` with an
+invalid BCD digit follow Mednafen's formulas) the 18 titles were run on 2026-11-12 with the core
+before (f31b630) and after, PyPy, `scripts/m2_ours.py`, extracted cards, US cards as TurboGrafx-16:
+all 27 pictures are **byte-identical before and after**, so the comparisons against Mesen2 and
+Beetle PCE stand as recorded (the detectors were not rerun). R-Type here was the USA card.
+
 ## Built
 
 `vdc/sprites.py` (scan and draw), hooks in `vdc/chip.py` and `vdc/sequencer.py`; 15 tests
