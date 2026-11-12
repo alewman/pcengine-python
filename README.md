@@ -38,19 +38,19 @@ Not on PyPI (the core is pinned by git commit). Python 3.11 or newer; PyPy is se
 from pcengine_python import pads
 from pcengine_python.board import Board
 from pcengine_python.cards import card_from_path
-from pcengine_python.machine import PC_ENGINE          # or TURBOGRAFX_16 for a US card
+from pcengine_python.machine import PC_ENGINE  # or TURBOGRAFX_16 for a US card
 from pcengine_python.state import load_state, save_state
 from pcengine_python.system import build
 
 pad = pads.Pad2()
 board = Board(PC_ENGINE, card=card_from_path("your-card.pce"), pad=pad)
-system = build(board)                  # the HuC6280 core on the board
+system = build(board)  # the HuC6280 core on the board
 for _ in range(300):
     system.run_frame()
-frame = board.capture.last_frame       # 242 rows of 9-bit palette values
-samples = board.take_audio()           # stereo, 44.1 kHz
-pad.pressed = pads.RUN                 # hold a button for the next frames
-state = save_state(system)             # the whole console as bytes; load_state() puts it back
+frame = board.capture.last_frame  # 242 rows of 9-bit palette values
+samples = board.take_audio()  # stereo, 44.1 kHz
+pad.pressed = pads.RUN  # hold a button for the next frames
+state = save_state(system)  # the whole console as bytes; load_state() puts it back
 ```
 
 There is no window or player yet: the board is a library, and the family's front end is a later
