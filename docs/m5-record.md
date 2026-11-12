@@ -36,6 +36,7 @@ Result files (JSON lines, one per card and checkpoint, `tests/detectors/`):
 | `m5-sweep-pass2-2026-10-30.txt` | pass 2, same code: every card not identical in pass 1 (17, plus Binary Star: Beetle only), the 6 whose verdict moved to identical, and 6 identical ones drawn with seed 5 | 30 | 900, 1500 |
 | `m5-sweep-postfix-2026-10-30.txt` | pass-2 card list again after the two fixes below | 30 | 300, 600 |
 | `m5-sweep-postfix2-2026-10-30.txt` | 46 more cards after the fixes (40 drawn with seed 11 from the 149 not in the file above, plus 6 unlisted images) | 46 | 300, 600 |
+| `m5-sweep-full-2026-11-12.txt` | all 179 again in one run, code at fe1bb57 (core 9c47c98), the exact comparison | 179 | 300, 600 |
 
 ## Counts
 
@@ -45,6 +46,9 @@ Result files (JSON lines, one per card and checkpoint, `tests/detectors/`):
 | **Pass 1 now** (code 5826715) | **162** | **6** | **11** |
 | After the two fixes (76 of the 179 re-run, see below; the rest assumed unchanged) | 164 | 6 | 9 |
 | **After the exact comparison (2026-11-04, 14 cards re-run; the rest unchanged)** | **170** | **0** | **9** |
+| **Full re-run (2026-11-12, all 179, code fe1bb57, core 9c47c98)** | **170** | **0** | **9** |
+
+The full re-run of 2026-11-12 removes the assumption below: every card and checkpoint has the same share of equal rows and pixels against both referees as its latest earlier result (358 lines; only Santatlantean's pixel share moved, 0.0004 to 0.0007-0.0012, rows 0.000 as before, U36). The nine different cards are the same nine. 171 cards are identical to Beetle PCE at both frames.
 
 The 179 were not all re-run after the fixes: 30 + 46 = 76 were (all 17 non-identical cards included).
 Of the 76, 2 moved (Rastan Saga II and Space Harrier, to identical); none of the 59 other cards
