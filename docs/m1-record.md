@@ -1,6 +1,8 @@
 # Milestone 1 record: what is built, what judges it, what is provisional
 
-Status (2026-10-24, updated after M2): **the board is built, pinned to the core and green; M1's
+Status: **closed as a documented provisional on 2026-11-04** ("Decision (2026-11-04)" below): the
+exit as written does not hold and no parameter makes it hold. As first written (2026-10-24, updated
+after M2): **the board is built, pinned to the core and green; M1's
 two core-dependent judges were run and the exit does NOT hold, so M1 stays open.** M2's first
 background picture calibrated Covell's absolute positions ("Calibration with the background"
 below): the offset did not close. The core is huc6280-python

@@ -3,8 +3,8 @@
 Aubrey's shape rule (2026-10-23): follow the Sega console pattern. `pcengine-python` is the **base
 board with documented sockets**; the CD family and (probably) the SuperGrafx are **separate
 add-on boards** that pin it by git revision and nothing is copied: `pcenginecd-python` and
-`supergrafx-python` (working names; `supergrafx-python` was created on 2026-11-05, local, see
-[m6-status.md](m6-status.md); `pcenginecd-python` is **not created**). The pattern was read, read-only,
+`supergrafx-python` (both built since: see [m6-status.md](m6-status.md) and the two repositories
+on GitHub; each audited this list before it was built, below). The pattern was read, read-only,
 from `megadrive-python/docs/expansion-sockets.md` (nine sockets, built on branch
 `expansion-sockets`, merged as PR #6 with 0 sweep rows moved), `segacd-python/docs/sockets.md` and
 `sega32x-python/docs/handoff-brief.md`.
@@ -28,7 +28,7 @@ which found the first draft short in six places. Each finding is a design rule h
 | The core lacked a bus cycle that waits for `/DTACK` (the sub-CPU), found late | The only waiter here is the CPU itself: the VDC's `/BUSY` is wired to the CPU's **RDY** [doc: wiki VDC/CPU pinouts]. The board holds the clock; the core needs no wait input |
 | Retrofitting needed a board PR touching every bus path | Define the Protocols **and test-only fakes** in the base board's first milestone; implement only what the base uses; have each add-on's Phase 0 audit the list **before the base is tagged** (the Sega audit moved six decisions) |
 
-## The sockets (proposed; every one a narrow `typing.Protocol`, transcribable to a Rust trait)
+## The sockets (every one a narrow `typing.Protocol`, transcribable to a Rust trait)
 
 1. **HuCard slot**: `CardSlot` holding a `Card`: `claims() -> [(first_page, last_page)]`, read/write
    with `mclk`, `reset()`. Standard ROM mirroring, SF2/Populous/Tennokoe/Navi cards and a System Card

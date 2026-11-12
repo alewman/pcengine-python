@@ -1,5 +1,12 @@
 # Handoff: build `pcengine-python`, the PC Engine / TurboGrafx-16 board
 
+> **A historical document.** This is the plan the board was built from (2026-10-23), kept as
+> written, with each milestone's status added to its row and the decisions recorded at the end:
+> every "open decision" and "recommendation" below was decided on 2026-10-23. For the board as it
+> is, read the [README](../README.md) and the milestone records. Paths under `/data/emu/` are the
+> author's machine. The `pin-N` tags planned below were not used: add-ons pin a commit, and
+> releases are `vX.Y.Z` tags.
+
 ## Context you are inheriting
 
 The family's shape is **chips are cores, boards compose cores; never copy a chip file between

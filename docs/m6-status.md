@@ -1,7 +1,8 @@
 # Milestone 6 status: the SuperGrafx (2026-11-05)
 
-The SuperGrafx is built as the add-on `supergrafx-python` (`/data/emu/supergrafx-python`, local,
-nothing pushed) pinning this board by `git+file` at 5d9dc86. The full record, the judges and the U/C
+The SuperGrafx is built as the add-on
+[supergrafx-python](https://github.com/alewman/supergrafx-python) (local when this was written;
+on GitHub since 2026-11-11, pinning this board by its GitHub commit). The full record, the judges and the U/C
 entries (C-SGX1, U-SGX1-U-SGX8, C-MESEN1) are in that repository's `docs/m6-record.md`. What belongs
 here:
 

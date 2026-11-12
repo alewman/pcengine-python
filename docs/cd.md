@@ -1,8 +1,12 @@
 # CD-ROM², Super CD-ROM², the Arcade Card (a brief, for the add-on board)
 
-Scope of this document: enough to plan `pcenginecd-python` (working name, **not created**) and to
-say what the base board must expose ([sockets.md](sockets.md)). The base board's first build does
-**not** include the CD (open decision 5). Tiers as in [validation.md](validation.md).
+> **A planning brief, kept as written (2026-10-23).** The add-on it plans is built:
+> [pcenginecd-python](https://github.com/alewman/pcenginecd-python) (CD unit, ADPCM, Arcade Card),
+> whose own records say what was found; where they differ from this brief, they are right.
+
+Scope of this document: enough to plan `pcenginecd-python` and to
+say what the base board must expose ([sockets.md](sockets.md)). The base board does
+**not** include the CD. Tiers as in [validation.md](validation.md).
 
 ## What the hardware is
 

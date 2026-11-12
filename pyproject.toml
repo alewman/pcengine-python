@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pcengine-python"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "Readable, pure-Python PC Engine / TurboGrafx-16 board with documented sockets for add-ons"
 readme = "README.md"
 # The floor is the newest Python PyPy supports (3.11 as of PyPy 7.3.20); raise it when PyPy does.
@@ -22,6 +22,11 @@ authors = [{ name = "alewman" }]
 dependencies = [
     "huc6280-python @ git+https://github.com/alewman/huc6280-python@9c47c98d4310d55935906607abef0f69607d0e7a",
 ]
+
+[project.urls]
+Homepage = "https://github.com/alewman/pcengine-python"
+Repository = "https://github.com/alewman/pcengine-python"
+Changelog = "https://github.com/alewman/pcengine-python/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
@@ -59,5 +64,5 @@ addopts = "--strict-markers -ra -m 'not slow'"
 pythonpath = ["src", "tests"]
 markers = [
     "slow: runs a test ROM or an oracle for many emulated seconds (pytest -m slow)",
-    "needs_cpu: needs huc6280-python, pinned in pyproject once its rung 1 passes",
+    "needs_cpu: needs huc6280-python, the real core (pinned in pyproject)",
 ]

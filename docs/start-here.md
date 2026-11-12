@@ -4,7 +4,8 @@ Read [README.md](../README.md) first, then this, then [memory-map.md](memory-map
 [sockets.md](sockets.md), [vdc.md](vdc.md), [vce.md](vce.md), [psg.md](psg.md),
 [cartridge.md](cartridge.md), [cd.md](cd.md), [validation.md](validation.md),
 [mame-oracle.md](mame-oracle.md), and last [handoff-brief.md](handoff-brief.md) (milestones, the
-U and C lists, the open decisions). Nothing here is code: this is Phase 0.
+U and C lists, the decisions taken; a historical brief). The board is built: these documents
+describe it and say where each fact comes from.
 
 ## The machines as data
 
@@ -21,7 +22,7 @@ differences are rows, not forks.
 | Card data pins | ascending | descending (converter in the dump) | PC Engine order | |
 | Lines per frame | 263 / 262 (VCE bit 2: C3) | same | same | same |
 
-**Scope proposal (open decision 2)**: PC Engine (NTSC-J) first, TurboGrafx-16 as a row from day
+**Scope**: PC Engine (NTSC-J) first, TurboGrafx-16 as a row from day
 one (a region flag on the I/O port: cheap and 93 of the 179 library cards are US), SuperGrafx and the
 CD family as add-on boards ([sockets.md](sockets.md)). There is no PAL machine.
 
@@ -36,20 +37,24 @@ one-cycle penalty ([memory-map.md](memory-map.md), C4) and VDC `/BUSY` waits (RD
 IRQ1/IRQ2/timer. **One timeline in master clocks, no second domain in the base board**; the CD adds
 domains ([sockets.md](sockets.md)).
 
-## The module shape (proposed)
+## The module shape
 
 ```
 pcengine_python/
   machine.py     the machine table (clocks, RAM size, region bit, VDC count)
-  board.py       the page table (8192 x 256-byte pages), clock, hold(), IRQ lines
-  cpu_io.py      timer, $1400 IRQ mask/status, $1000 I/O port, the I/O buffer   (board-owned, pin-shaped)
-  vdc/           HuC6270 (instances): regs, vram, bat/cg render, sprites, dma, timing   (import boundary)
-  vce.py         palette, dot clock, 262/263, output
+  board.py       the one timeline in master clocks, the bus callbacks, hold(), IRQ lines
+  pagetable.py   8192 x 256-byte pages: who answers which physical address; work RAM
+  hardware_page.py  the decode of bank $FF (VDC, VCE, PSG, timer, I/O port, interrupt registers)
+  cpu_io/        timer, $1402/$1403 interrupt registers, $1000 I/O port, the I/O buffer   (board-owned, pin-shaped)
+  vdc/           HuC6270 (instances): regs, chip, sequencer (timing), background, sprites, dma   (import boundary)
+  vce.py         palette, dot clock, 262/263 lines
+  video.py       the frame timeline and the line capture (what a frame is)
   psg/           C6280 six channels (import boundary)
-  cards/         standard ROM + mirroring, SF2, Populous, Tennokoe, system card
-  sockets.py     the Protocols and the test-only fakes
-  pads.py        2-button, multitap, 6-button, mouse
-  system.py      run_frame, the scheduler
+  mixer.py       the `audio_sources` list mixed to 44.1 kHz stereo
+  cards.py       standard ROM + mirroring, SF2, Populous, Tennokoe
+  sockets.py     the Protocols add-ons plug into (the test-only fakes are tests/fake_devices.py)
+  pads.py        2-button, 6-button, multitap
+  system.py      the CPU on the board, run_frame
   state.py       save states: the whole console as bytes, and back
 ```
 
@@ -116,5 +121,5 @@ Python floor **3.11** (newest PyPy supports): `requires-python = ">=3.11"`, ruff
 "py311"`. Modern forms over compatibility shims. Reference boards are correct, not fast. Never copy a
 chip file between repositories: extract on the second consumer. **ROMs, CHDs, the System Card and any
 BIOS are bring-your-own, read in place by path, never committed** (the `.gitignore` refuses their
-extensions). Local git only until a rung says otherwise (open decision 8). No dangerous-looking shell
+extensions). No dangerous-looking shell
 one-liners in scripts or docs.

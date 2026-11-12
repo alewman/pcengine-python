@@ -202,7 +202,7 @@ after each run. f1a2f5a changed VDC behaviour; **no stop moved** against the 202
 Against MAME none reaches 20 M (172,272 at best, R-Type); not replayed (no MAME trace stored, 17
 minutes of wall time each on a loaded machine).
 
-### How the lockstep exit closes (proposal)
+### How the lockstep exit closes (proposal; the milestone was closed on this reading on 2026-11-04, see the M5 row of handoff-brief.md)
 
 The exit as written asks for "6 games lockstep >= N M instructions with 0 unexplained". Proposed
 reading, which the data supports and which Aubrey is asked to accept or refuse:

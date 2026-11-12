@@ -8,7 +8,7 @@ Read in this order.
 | --- | --- |
 | [start-here.md](start-here.md) | The machines as data (PC Engine, TG-16, SuperGrafx, CD); the clocks; the module shape; performance as an extrapolation; floors and rules |
 | [memory-map.md](memory-map.md) | The HuC6280's MMU and the 21-bit map, the hardware page, the I/O buffer, the I/O port and pads, interrupts, the timer, clocks; **who owns what** between core and board |
-| [sockets.md](sockets.md) | What the Sega socket list teaches; the 12 proposed sockets; CD and SuperGrafx as add-on or mode; what each add-on needs |
+| [sockets.md](sockets.md) | What the Sega socket list teaches; the 12 sockets; CD and SuperGrafx as add-on or mode; what each add-on needs |
 | [vdc.md](vdc.md) | The HuC6270: registers, VRAM, BAT, sprites, DMA, burst mode, the display and the memory schedule, what is unknown |
 | [vce.md](vce.md) | The HuC6260: palette, dot clocks, 262/263 lines, palette conflicts, output colours |
 | [psg.md](psg.md) | The six-channel PSG: registers, DDA, noise, LFO, mixing; no hardware reference exists |
@@ -16,8 +16,8 @@ Read in this order.
 | [cd.md](cd.md) | CD-ROM², Super CD-ROM², Arcade Card in brief; BIOS handling; what boots here |
 | [validation.md](validation.md) | Every oracle by tier with pins and provenance; what ran here; the detector comparison |
 | [mame-oracle.md](mame-oracle.md) | The verified MAME 0.285 recipe, output format, seven traps |
-| [handoff-brief.md](handoff-brief.md) | Decisions, the embedding contract for huc6280-python, 8 milestones with judges, U and C lists, 14 open decisions |
-| [m6-status.md](m6-status.md) | **Milestone 6 status** (the SuperGrafx add-on, `supergrafx-python`, local): the socket audit result, issue 0001, the five cards, the measured fallback; the record itself is in the add-on repository |
+| [handoff-brief.md](handoff-brief.md) | Decisions, the embedding contract for huc6280-python, 8 milestones with judges, U and C lists, the 14 decisions (all taken): the historical plan |
+| [m6-status.md](m6-status.md) | **Milestone 6 status** (the SuperGrafx add-on, `supergrafx-python`): the socket audit result, issue 0001, the five cards, the measured fallback; the record itself is in the add-on repository |
 | [m5-record.md](m5-record.md) | **Milestone 5, sweep half**: the 179-card sweep against Mesen2 and Beetle (162 identical, 6 near, 11 different, then two board fixes), causes per card, the 26 unlisted images, the lockstep exit stated honestly, the measured speed (U17), the PyPy gate; U36, C30, C31 |
 | [m5-lockstep-record.md](m5-lockstep-record.md) | **Milestone 5, lockstep half**: the board against MAME and Mednafen instruction by instruction; the Covell ROM closes against Mednafen, six games' first differences named |
 | [m4-record.md](m4-record.md) | **Milestone 4 as built**: the PSG, the referee comparison (MAME, Mednafen), C13-C24, the timer finished |
