@@ -76,7 +76,9 @@ class Psg:
     #: CTL non-zero.
     lf_trg_halts_always = True
     #: C15: R1/R5's table: the manual says 3 dB a step; both emulators share a table in which the
-    #: step from 7 to 8 is 1.5 dB and from 8 to 9 4.5 dB (index 8 costs 15 units, not 14).
+    #: step from 7 to 8 is 1.5 dB and from 8 to 9 4.5 dB (index 8 costs 15 units, not 14). The
+    #: sixteen values in `_scale` are that table, as in MAME's c6280.cpp (BSD-3-Clause, Charles
+    #: MacDonald; see NOTICE.md).
     scale_table_quirk = False
     #: C14: attenuation at which a channel goes silent, in 1.5 dB units. The manual: 45 dB (30).
     #: Both emulators keep a 31st step (46.5 dB) that is still audible.

@@ -109,6 +109,7 @@ It needs `git` and `curl`. The wiki pages are live: a changed page is reported a
 | `scripts/covell_calibrate.py`, `covell_photo_splits.py` | Covell's CPU timing test against his photographs |
 | `scripts/psg_record.py`, `psg_compare.py`, `psg_referees/` | PSG register streams against MAME's and Mednafen's chips |
 | `scripts/frame_png.py`, `pixelpath_bench.py` | a saved frame as a PNG; the cost of the pixel socket |
+| `scripts/provenance_check.py` | looks for code copied or transcribed from the reference trees (GPL and LGPL emulators): [docs/provenance.md](docs/provenance.md) |
 | `scripts/presses.py` | scripted pad input (`run@400+10`) in one spelling for the board, Mesen2 and Beetle PCE: `--press` on the picture scripts |
 | `scripts/state_roundtrip.py` | save states proven complete: a saved and loaded run against the run that was not interrupted, bus cycle for bus cycle ([docs/start-here.md](docs/start-here.md) "Save states") |
 
