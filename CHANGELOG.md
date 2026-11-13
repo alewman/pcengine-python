@@ -16,5 +16,6 @@ The first release: the PC Engine and TurboGrafx-16 with HuCards.
   SuperGrafx), port devices caught up by the scheduler (0002) and mixed audio sources (0003, the CD).
 - Save states (`pcengine_python.state`), proven by round trip on 18 titles.
 - Scripted pad input for the picture scripts (`scripts/presses.py`).
-- CPU core: huc6280-python 0.3.0 (9c47c98 at the time of the sweep: decimal `ADC`/`SBC` with an
+- CPU core: huc6280-python 0.3.0 (pinned at bf20330; 9c47c98 at the time of the sweep, the same
+  results: decimal `ADC`/`SBC` with an
   invalid BCD digit follow Mednafen's formulas).
