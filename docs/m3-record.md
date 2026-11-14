@@ -18,6 +18,10 @@ before (f31b630) and after, PyPy, `scripts/m2_ours.py`, extracted cards, US card
 all 27 pictures are **byte-identical before and after**, so the comparisons against Mesen2 and
 Beetle PCE stand as recorded (the detectors were not rerun). R-Type here was the USA card.
 
+After issue 0004's fix (2026-11-13: the display keeps its lines while the CPU waits on a VDC
+access) the same runs, 26 pictures (the first ten at 300 frames, Air Zonk and Ballistix at 450,
+the other eight at 300 and 600), are **byte-identical before (5533552) and after**.
+
 ## Built
 
 `vdc/sprites.py` (scan and draw), hooks in `vdc/chip.py` and `vdc/sequencer.py`; 15 tests

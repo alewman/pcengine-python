@@ -50,6 +50,10 @@ Result files (JSON lines, one per card and checkpoint, `tests/detectors/`):
 
 The full re-run of 2026-11-12 removes the assumption below: every card and checkpoint has the same share of equal rows and pixels against both referees as its latest earlier result (358 lines; only Santatlantean's pixel share moved, 0.0004 to 0.0007-0.0012, rows 0.000 as before, U36). The nine different cards are the same nine. 171 cards are identical to Beetle PCE at both frames.
 
+Issue 0004 (2026-11-13, the display keeps its lines while the CPU waits on a VDC access): the nine
+different cards (After Burner II among them) rerun at 300 and 600 are unchanged in every number,
+18 of 18 checkpoints; the 170 identical cards were not rerun.
+
 The 179 were not all re-run after the fixes: 30 + 46 = 76 were (all 17 non-identical cards included).
 Of the 76, 2 moved (Rastan Saga II and Space Harrier, to identical); none of the 59 other cards
 that were identical before moved (Davis Cup Tennis, Galaga '90 and Super Metal Crusher changed in their numbers, not in class). 103 identical cards were not re-run; "164 identical" assumes they

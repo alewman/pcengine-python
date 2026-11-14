@@ -4,6 +4,18 @@ Releases are git tags; install one with
 `pip install "pcengine-python @ git+https://github.com/alewman/pcengine-python@v0.1.0"`.
 Not on PyPI (the CPU core is pinned by git commit).
 
+## Unreleased
+
+- Issue 0004 (findings from the Rust port): a CPU access that waits on a VDC transfer no longer
+  runs the VDC ahead of the line clock. `/BUSY` holds only the CPU, so the board now runs every
+  device event by event until the access is served (`Board._serve_vram`, `Vdc(serve=...)`): a
+  VRAM DMA the CPU waits on meets the display start, paused (C7) or cancelled
+  (`dma_resumes=False`). The 18-title picture gate is byte-identical before and after.
+- `Psg.silent_units` set on an instance now reaches the host-rate output.
+- Unused `Psg._acc_steps`, `Psg._reload_lfo_channels`, `PopulousCard.RAM_BANKS` removed;
+  docs/sockets.md cites U13 for the video bus; `Board.reset` documents that a power-on reset is
+  not a power cycle.
+
 ## 0.1.0 (2026-11-12)
 
 The first release: the PC Engine and TurboGrafx-16 with HuCards.
