@@ -134,6 +134,23 @@ def test_manual_attenuation_example_12_db_left_and_silent_right():
     assert psg._levels[8] == pytest.approx(10 ** (-12 / 20))
 
 
+def test_silent_units_set_on_an_instance_reaches_the_host_rate_output():
+    """Issue 0004: scripts/psg_compare.py applies `VARIANTS` with setattr after construction; the
+    level table was built once in `__init__`, so the 31st step (C14) stayed silent there."""
+    outputs = []
+    for units in (30, 31):
+        psg = Psg()
+        psg.silent_units = units  # on the instance, after construction
+        fill_wave(psg, 0, [31] * 32)
+        w(psg, 1, 0xFF)  # main volume at maximum
+        start(psg, 0, 10, control=0x80 | 0x01)  # AL 1: 30 units, main and pan at maximum
+        assert psg.attenuation(0, 0) == 30
+        psg.take_samples(6 * psg.step)  # drop the setup
+        outputs.append(psg.take_samples(6 * (psg.step + 2000)))
+    assert all(sample == (0, 0) for sample in outputs[0])  # 45 dB: silent (the manual)
+    assert any(sample != (0, 0) for sample in outputs[1])  # 46.5 dB still audible
+
+
 @pytest.mark.parametrize("register", ["main", "al", "pan"])
 def test_a_zero_register_silences_the_channel_manual_2_3(register):
     psg = Psg()

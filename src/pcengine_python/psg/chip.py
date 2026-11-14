@@ -104,10 +104,12 @@ class Psg:
         # host-rate output (a box average of the step stream; outside the reference path)
         self.rate_hz = rate_hz
         self.gain = 1.0
-        # up to 30 + 31 + 30
-        self._levels = [10 ** (-1.5 * u / 20) if u < self.silent_units else 0.0 for u in range(128)]
+        # up to 30 + 31 + 30; rebuilt when `silent_units` changes (issue 0004: psg_compare.py
+        # sets the switches on an instance after construction)
+        self._levels_units = -1
+        self._levels: list[float] = []
+        self._level_table()
         self._acc = [0.0, 0.0]
-        self._acc_steps = 0.0
         self._phase = 0.0
         self._out: list[tuple[int, int]] = []
         self._noise_period = [0] * 6
@@ -170,15 +172,13 @@ class Psg:
             self.balance = value
             return
         if reg == 8:
-            self.lfo_frequency = value
-            self._reload_lfo_channels()
+            self.lfo_frequency = value  # counters pick up a changed period at their next reload
             return
         if reg == 9:
             if value & 0x80:  # [mfr 2.1.10] LF TRG: ch 2's wave counter and address reset
                 self.channels[1].index = 0
                 self.channels[1].counter = self._period(1)
             self.lfo_control = value
-            self._reload_lfo_channels()
             return
         if reg > 7 or self.select > 5:
             return  # "no more than 6 channels"
@@ -196,9 +196,6 @@ class Psg:
         elif reg == 7 and self.select >= 4:
             channel.noise_control = value
             self._set_noise_period(self.select)
-
-    def _reload_lfo_channels(self) -> None:
-        pass  # counters pick up a changed period at their next reload
 
     def _write_control(self, ch: int, channel: Channel, value: int) -> None:
         was_dda, was_on = channel.dda, channel.on
@@ -311,11 +308,12 @@ class Psg:
             listener(n, snapshot)
         if not self.render_audio:
             return
+        levels = self._level_table()
         left = right = 0.0
         for sample, ul, ur in snapshot:
             if sample >= 0:
-                left += self._levels[ul] * (sample - 16)
-                right += self._levels[ur] * (sample - 16)
+                left += levels[ul] * (sample - 16)
+                right += levels[ur] * (sample - 16)
         scale = self.gain / (6 * 16)
         left, right = left * scale, right * scale
         per_sample = 3_579_545 / self.rate_hz
@@ -336,6 +334,15 @@ class Psg:
                 )
                 self._acc = [0.0, 0.0]
                 self._phase = 0.0
+
+    def _level_table(self) -> list[float]:
+        """Amplitude by attenuation units (1.5 dB each), silent from `silent_units` on (C14)."""
+        if self._levels_units != self.silent_units:
+            self._levels_units = self.silent_units
+            self._levels = [
+                10 ** (-1.5 * u / 20) if u < self.silent_units else 0.0 for u in range(128)
+            ]
+        return self._levels
 
     def take_samples(self, mclk: int) -> list[tuple[int, int]]:
         """Stereo samples at `rate_hz` up to `mclk` since the last call (a box average of the

@@ -120,8 +120,6 @@ class PopulousCard(RomCard):
     the rest as a plain card. [emu: Mednafen: detected by "POPULOUS" at $1F26; MAME `pce_populous`
     at $80000-$87FFF.] Power-up contents are Mednafen's $FF (U7: arbitrary for a battery RAM)."""
 
-    RAM_BANKS = (0x40, 0x41, 0x42, 0x43)
-
     def __init__(self, data: bytes) -> None:
         super().__init__(data)
         self.ram = bytearray(b"\xff" * 0x8000)

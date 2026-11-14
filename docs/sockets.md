@@ -39,7 +39,7 @@ which found the first draft short in six places. Each finding is a design rule h
 2. **Expansion port**: `PortDevice` (the EXT BUS: A0-A20, D0-D7, `/RD`, `/WR`, `/CEK`?, `/NMI`?,
    `/IRQ2`, `RDY`, audio in, `K7` = I/O bit 7, `/CD`, and the video bus VD0-8 + HSYNC/VSYNC/DCK/VCESEL
    [doc: wiki EXT BUS pinout]). `claims()`, IRQ2 source, audio source, and `present` for the I/O
-   port. The video-bus pins are **not** a socket until a device that uses them is found (U15).
+   port. The video-bus pins are **not** a socket until a device that uses them is found (U13).
 3. **One decode**: the base owns a 8192-entry page table; each page is `BASE_ROM`, `BASE_RAM`,
    `HARDWARE(n)` (n = which 256-byte block of the `$FF` page), `UNMAPPED`, or a device. A device claim
    *replaces* the page's handler (so a Super System Card's RAM overrides the ROM mirror, as the
@@ -62,7 +62,11 @@ which found the first draft short in six places. Each finding is a design rule h
    the first's line/dot position ([emu: Mesen2 `PceVpc.cpp`, ares `vdp.cpp` clock the VDCs together]).
    One `VideoTiming` record per line, as Sega's socket 6.
 9. **Audio sources**: `AudioSource(rate, gain, take_samples(mclk))`, list on the board; PSG first.
-10. **Reset**: `reset(kind, mclk)`.
+10. **Reset**: `reset(kind)`. The board is built at power-on: constructing it is the power-on state
+    of the VDC, VCE, PSG and RAM, and `Board.reset(POWER_ON)` passes the event to the card, the port
+    device and the CPU's on-die peripherals only; it is not a power cycle (a host builds a new board
+    for that). No source says what the VDC's `/RST` clears, the VCE has no reset pin and RAM no reset
+    (issue 0004).
 11. **Controller ports** (an empty socket in the Sega board; cheap here): `ControllerPort` with
     `read(sel, clr) -> nibble`, `write`, for 2-button/6-button/multitap/mouse devices; the SuperGrafx's
     S-EXP port shares the nibble through a 74HC157 mux and exposes output bits 2-7.
