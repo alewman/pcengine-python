@@ -196,6 +196,23 @@ rule is stated first, then each source.
 - *MAME* (`huc6270.cpp`): no CPU wait, BSY is never set (the define is unused), the VRAM DMA is done
   at once ("timing is incorrect") and the SATB copy happens at the vblank flag.
 
+**A2. The display keeps running while the CPU waits (issue 0004, 2026-11-13).** The hold is the
+VDC's `/BUSY` output on the CPU's `RDY` [wiki: VDC pinout, tier 4]: it stops the CPU, nothing else.
+The VDC's line and frame come from the VCE's `/HSYN` and `/VSYN` [wiki: VCE and VDC pinouts], and no
+source has the VCE wait for the CPU. So a wait that spans the start of the display period meets it,
+and C7 applies to the transfer as to any other. Hudson's manual (tier 3) says the display start
+cancels it ("no End Detect status", the remainder "will not be transferred"); MacDonald (tier 2) says
+it is halted and resumes. Both emulators run the rest of the machine through the wait: Mednafen's
+`WS_Hook(-1)` steals the CPU's time to the next VCE/VDC event and repeats; Mesen2's
+`WaitForVramAccess` runs the system one CPU-cycle step at a time until the access is served. The
+board used to run only the waiting VDC to the transfer's end, lines ahead of the board's line clock,
+so a waited-on transfer always completed as if the display never started and `dma_resumes` changed
+nothing for it. Now the board runs every device, the line clock included, event by event until the
+access is served (`Board._serve_vram`): with the default the CPU stays held through the display
+period until the paused transfer ends after it; with `dma_resumes=False` the display start cancels the
+remainder and serves the access there (tests `test_a_cpu_waiting_on_a_dma_*`). How long the real
+chip holds the CPU is still U30/C26.
+
 **B. When the status bits are set.**
 
 | Bit | Board | Mednafen | Mesen2 | MAME |

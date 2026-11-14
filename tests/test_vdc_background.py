@@ -4,7 +4,7 @@ background pixel value `palette << 4 | colour` to a distinct colour (its own ind
 
 import pytest
 from fake_devices import ScriptedCpu
-from helpers import standard_display, vdc_reg
+from helpers import line_of, standard_display, vdc_reg
 
 from pcengine_python.board import Board
 from pcengine_python.machine import ACTIVE_LINES, LINE_CLOCKS, TOP_BLANK_LINES, Machine
@@ -196,7 +196,7 @@ def test_dma_is_paused_by_the_display_and_resumes_after_it_c7():
     for i in range(0x3000):
         board.vdc.vram[0x1000 + i] = i & 0xFFFF
     board.advance(LINE_CLOCKS * 263 + LINE_CLOCKS * 20)  # frame 1, line 20: before the display
-    dma(cpu, 0x1000, 0x5000, 0x2FFF, dcr=0x0002)  # 12 288 words, about 24.6 lines at 5 MHz
+    dma(cpu, 0x1000, 0x5000, 0x2FFF, dcr=0x0002)  # 12 288 words, about 72 lines at 5 MHz
     board.advance(LINE_CLOCKS * 14)  # into the display period (line 25 onward)
     assert board.vdc.dma.running
     partial = board.vdc.regs.value[r.LENR]
@@ -219,6 +219,49 @@ def test_the_manuals_reading_cancels_the_remainder_without_a_done_interrupt():
     board.advance(LINE_CLOCKS * 263)
     assert board.vdc.regs.value[r.LENR] not in (0xFFFF,) and not board.vdc.status & r.DV
     assert not board.vdc.dma.running
+
+
+def _wait_on_a_dma_across_the_display_start(dma_resumes):
+    """Issue 0004: 4 096 words started at line 20 (24 lines at 5 MHz, 170 words a line; the
+    display period starts at line 25), then a VRAM read, which holds the CPU (/BUSY on RDY) until
+    the VDC serves it. Returns the board and the (frame, line) at which the CPU got its byte."""
+    board = Board(FIXED_263, dma_resumes=dma_resumes)
+    cpu = ScriptedCpu(board, high_speed=True)
+    standard_display(cpu, cr=0x0080)
+    for i in range(0x1000):
+        board.vdc.vram[0x1000 + i] = i
+    board.advance(LINE_CLOCKS * 263 + LINE_CLOCKS * 20)
+    dma(cpu, 0x1000, 0x5000, 0x0FFF, dcr=0x0002)
+    vdc_reg(cpu, r.MARR, 0x0000)  # accepted behind the transfer (BSY)
+    assert board.vdc.bsy
+    cpu.read(0x1FE002)  # a data read while the word is pending: the CPU waits
+    return board, line_of(board, board.mclk)
+
+
+def test_a_cpu_waiting_on_a_dma_sees_the_manuals_cancel_at_the_display_start():
+    """`dma_resumes=False` (Hudson's manual, Mednafen): the display period still starts during
+    the CPU's wait, cancels the remainder (no done flag) and serves the access there. The wait
+    used to run the VDC alone to the transfer's end, so the transfer completed instead."""
+    board, (frame, line) = _wait_on_a_dma_across_the_display_start(dma_resumes=False)
+    # released as the display period begins (the line counter step that starts it, 4 dots before
+    # line 24's display width ends, falls in line 25's clocks), not ~25 lines on
+    assert (frame, line) == (1, 25)
+    assert board.vdc.regs.value[r.LENR] != 0xFFFF and not board.vdc.status & r.DV
+    assert not board.vdc.dma.running and not board.vdc.bsy
+    left = board.vdc.regs.value[r.LENR]
+    board.advance(LINE_CLOCKS * 263)
+    assert board.vdc.regs.value[r.LENR] == left  # cancelled, not resumed
+
+
+def test_a_cpu_waiting_on_a_dma_is_held_through_the_display_while_it_is_paused_c7():
+    """The default (C7, MacDonald): the transfer pauses for the display period and the CPU stays
+    held until it ends after the display; the picture lines are drawn meanwhile."""
+    board, (frame, line) = _wait_on_a_dma_across_the_display_start(dma_resumes=True)
+    assert board.vdc.regs.value[r.LENR] == 0xFFFF and board.vdc.status & r.DV
+    # about 5 lines' worth before the display, the other 19 lines' after it (line 249 on)
+    assert (frame, line) == (2, 5)
+    assert board.capture.last_frame is not None and board.timeline.frame == 2  # drawn meanwhile
+    assert [board.vdc.vram[0x5000 + i] for i in (0, 0x800, 0xFFF)] == [0, 0x800, 0xFFF]
 
 
 # --- sprite attribute table DMA ------------------------------------------------------------

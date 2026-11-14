@@ -44,6 +44,7 @@ class Vdc:
         self,
         *,
         hold: Callable[[int], None] = lambda clocks: None,
+        serve: Callable[[Vdc], int] | None = None,
         power_on: random.Random | None = None,
         vblank_dots: int | None = -8,
         vertical_at_line_start: bool = False,
@@ -51,6 +52,10 @@ class Vdc:
     ) -> None:
         self.regs = r.VdcRegisters()
         self._hold = hold
+        # The board's wait (issue 0004): run the whole machine, line clock included, until this
+        # chip's pending CPU access is served, and return that time. None (a VDC on its own, with
+        # no sync to deliver) waits on the chip's own events.
+        self._serve = serve
         # U7: zeros by default, random on request.
         if power_on is None:
             self.vram = array("H", bytes(VRAM_WORDS * 2))
@@ -211,6 +216,8 @@ class Vdc:
             # [emu: Mednafen, Mesen2 and Beetle all show colour 0 of the background palette when
             # both layers are off (Space Harrier's last 12 lines); pcetech 5.2 says overscan: C30]
             pixels = [0x000] * width
+        # first <= dots: a display start past the row's end would come after the next line's
+        # sync, whose `_leave_hsync` drops this line's events before it is drawn (issue 0004)
         end = min(first + width, dots)
         row[first:end] = pixels[: end - first]
         if cr & 0x40 and self._sprite_entries:
@@ -256,11 +263,11 @@ class Vdc:
             # waits for a CPU slot or a DMA): the CPU waits for it rather than reading the old
             # word. The manual's read sequence and both Mednafen and Mesen2 ("D&D Order of the
             # Griffon breaks without this") agree; the model's slot wait made the case possible.
-            self._data_access(mclk)
+            mclk = self._data_access(mclk)
         value = (self.regs.read_buffer >> 8) if msb else (self.regs.read_buffer & 0xFF)
         if msb and self.regs.select == r.VRW:
             # [hw: pcetech 5.1 $02] after the MSB read MARR advances and the next word is read
-            self._data_access(mclk)
+            mclk = self._data_access(mclk)
             self.regs.value[r.MARR] = (self.regs.value[r.MARR] + self.regs.increment) & 0xFFFF
             self._pending_read = self.regs.value[r.MARR]
             self._schedule_commit(mclk)
@@ -283,7 +290,7 @@ class Vdc:
             if not msb:
                 regs.write_latch = value
             else:
-                self._data_access(mclk)
+                mclk = self._data_access(mclk)
                 word = regs.write_latch | (value << 8)
                 self._pending_write = (regs.value[r.MAWR], word)
                 regs.value[r.MAWR] = (regs.value[r.MAWR] + regs.increment) & 0xFFFF
@@ -292,7 +299,7 @@ class Vdc:
         regs.set_byte(register, value, msb)
         if register == r.MARR and msb:
             # [hw: pcetech 5.1 $01] writing the MSB loads the read buffer from VRAM[MARR]
-            self._data_access(mclk)
+            mclk = self._data_access(mclk)
             self._pending_read = regs.value[r.MARR]
             self._schedule_commit(mclk)
         elif register == r.BYR:
@@ -305,8 +312,27 @@ class Vdc:
 
     # -- VRAM access timing -------------------------------------------------------------------
 
-    def _data_access(self, mclk: int) -> None:
-        """A second data-port access while one is pending holds the CPU until it commits."""
+    def _data_access(self, mclk: int) -> int:
+        """A second data-port access while one is pending holds the CPU until it commits; the
+        time at which the new access is accepted is returned.
+
+        The hold is the /BUSY pin on the CPU's RDY [wiki: VDC pinout]: only the CPU stops. The
+        VDC's syncs come from the VCE, so the display keeps its lines while the CPU waits, and a
+        VRAM -> VRAM transfer the CPU waits on meets the display start like any other: paused
+        (C7, the default) or cancelled (`dma_resumes=False`, which serves the access there).
+        Issue 0004: the wait used to run this chip alone to the transfer's end, lines ahead of
+        the board's line clock, so the display never started during it."""
+        if not self.bsy:
+            return mclk
+        if self._serve is not None:
+            served = self._serve(self)
+            if served > mclk:
+                self._hold(served - mclk)
+            return max(served, mclk)
+        return self._wait_alone(mclk)
+
+    def _wait_alone(self, mclk: int) -> int:
+        """`_data_access` for a VDC with no board: no line clock reaches it during the wait."""
         now = mclk
         while self.bsy and self.dma.busy:  # the pending access is stuck behind a transfer
             due = self.dma.next_event()
@@ -321,7 +347,9 @@ class Vdc:
             wait = self._commit_at - now
             if wait > 0:
                 self._hold(wait)
+                now = self._commit_at
             self.commit_pending()
+        return now
 
     def _schedule_commit(self, mclk: int) -> None:
         if self.dma.busy:  # waits for the transfer; its end commits (BSY meanwhile)

@@ -81,6 +81,7 @@ class Board:
         self.vdcs = [
             Vdc(
                 hold=self.hold,
+                serve=self._serve_vram,
                 power_on=rng,
                 vblank_dots=vblank_dots,
                 vertical_at_line_start=vertical_at_line_start,
@@ -186,32 +187,60 @@ class Board:
         self._deliver_lines()
 
     def _run_to(self, target: int) -> None:
-        tl, vdc, io = self.timeline, self.vdc, self.cpu_io
-        while True:
-            line_at = tl.next_line_start
-            row_at = self._row_end
-            vdc_at = vdc.next_event()
-            for other in self._extra_vdcs:
-                at = other.next_event()
-                if at is not None and (vdc_at is None or at < vdc_at):
-                    vdc_at = at
-            timer_at = io.next_event()
-            if row_at is not None and row_at <= target and row_at <= line_at:
-                self._end_row(row_at)
-            elif line_at <= target and (vdc_at is None or line_at <= vdc_at):
-                self._new_line(line_at)
-            elif vdc_at is not None and vdc_at <= target:
-                for chip in self.vdcs:
-                    chip.catch_up(vdc_at)
-            elif timer_at is not None and timer_at <= target:
-                io.catch_up(timer_at)
-            else:
-                break
+        while self._step(target) is not None:
+            pass
+        self._settle(target)
+
+    def _settle(self, target: int) -> None:
         for chip in self.vdcs:
             chip.catch_up(target)
-        io.catch_up(target)
+        self.cpu_io.catch_up(target)
         if self.port is not None:
             self.port.catch_up(target)  # socket 5, issue 0002: a port device acts by itself
+
+    def _step(self, target: int) -> int | None:
+        """Handle the earliest event due at or before `target` and return its time; None if
+        nothing is due."""
+        tl, io = self.timeline, self.cpu_io
+        line_at = tl.next_line_start
+        row_at = self._row_end
+        vdc_at = self.vdc.next_event()
+        for other in self._extra_vdcs:
+            at = other.next_event()
+            if at is not None and (vdc_at is None or at < vdc_at):
+                vdc_at = at
+        timer_at = io.next_event()
+        if (
+            row_at is not None
+            and row_at <= target
+            and row_at <= line_at
+            and (vdc_at is None or row_at <= vdc_at)
+        ):
+            self._end_row(row_at)
+            return row_at
+        if line_at <= target and (vdc_at is None or line_at <= vdc_at):
+            self._new_line(line_at)
+            return line_at
+        if vdc_at is not None and vdc_at <= target:
+            for chip in self.vdcs:
+                chip.catch_up(vdc_at)
+            return vdc_at
+        if timer_at is not None and timer_at <= target:
+            io.catch_up(timer_at)
+            return timer_at
+        return None
+
+    def _serve_vram(self, chip: Vdc) -> int:
+        """A VDC holds the CPU (/BUSY on RDY) until its pending VRAM access is served: run every
+        device, the line clock included, event by event until then, and return that time. The
+        held clocks reach `mclk` when the access returns (`hold`); issue 0004."""
+        now = self.mclk
+        while chip.bsy:
+            at = self._step(1 << 62)  # the next line start always exists: this always moves
+            if at is not None:
+                now = max(now, at)
+        self._settle(now)
+        return now
 
     def _new_line(self, at: int) -> None:
         tl = self.timeline
@@ -256,6 +285,15 @@ class Board:
     # -- reset --------------------------------------------------------------------------------
 
     def reset(self, kind: ResetKind) -> None:
+        """Tell the socket devices of a reset event; at power-on also the CPU's on-die timer,
+        interrupt controller, I/O port and I/O buffer.
+
+        Not a power cycle (issue 0004): the board is built at power-on, and construction is the
+        power-on state of the VDC, VCE, PSG and RAM (U7: zeros, or the seed's values). None of
+        them is put back here: RAM has no reset; the VCE has no reset pin [wiki: VCE pinout];
+        the VDC has /RST [wiki: VDC pinout] but Hudson's manual says nothing of what it clears,
+        and the PSG manual is silent too; the PC Engine has no reset button (`ResetKind`). A host
+        that wants to power the machine on again builds a new `Board`."""
         for device in (self.slot.card, self.port):
             if device is not None:
                 device.reset(kind)
