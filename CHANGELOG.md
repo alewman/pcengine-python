@@ -1,10 +1,14 @@
 # Changelog
 
 Releases are git tags; install one with
-`pip install "pcengine-python @ git+https://github.com/alewman/pcengine-python@v0.1.0"`.
+`pip install "pcengine-python @ git+https://github.com/alewman/pcengine-python@v0.2.0"`.
 Not on PyPI (the CPU core is pinned by git commit).
 
-## Unreleased
+## 0.2.0 (2026-11-14)
+
+- CPU core: huc6280-python 0.4.0 (265df88, its issue 0005): interrupt polling at the edges of
+  an instruction follows the stated rule, and a save state now carries the lines the last poll saw
+  (states from 0.1.0 still load).
 
 - Issue 0004 (findings from the Rust port): a CPU access that waits on a VDC transfer no longer
   runs the VDC ahead of the line clock. `/BUSY` holds only the CPU, so the board now runs every

@@ -11,7 +11,7 @@ interrupt controller and I/O port, the **HuC6270 VDC**, the **HuC6260 VCE**, the
 wavetable **PSG**, the HuCard slot and its mappers, the pads, save states, and **documented
 sockets** for add-on boards.
 
-**Status (2026-11-12, release 0.1.0): built; milestones M1 to M5 are closed.** It is a reference
+**Status (2026-11-12, release 0.2.0): built; milestones M1 to M5 are closed.** It is a reference
 board: correct first, slower than real time (see [docs/start-here.md](docs/start-here.md)
 "Performance"). Every fact in [`docs/`](docs/README.md) has its source and tier; nothing here was
 run on a real console.
@@ -29,7 +29,7 @@ run on a real console.
 ## Install and run
 
 ```sh
-pip install "pcengine-python @ git+https://github.com/alewman/pcengine-python@v0.1.0"
+pip install "pcengine-python @ git+https://github.com/alewman/pcengine-python@v0.2.0"
 ```
 
 Not on PyPI (the core is pinned by git commit). Python 3.11 or newer; PyPy is several times faster.

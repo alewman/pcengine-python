@@ -4,14 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pcengine-python"
-version = "0.1.0"
+version = "0.2.0"
 description = "Readable, pure-Python PC Engine / TurboGrafx-16 board with documented sockets for add-ons"
 readme = "README.md"
 # The floor is the newest Python PyPy supports (3.11 as of PyPy 7.3.20); raise it when PyPy does.
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "alewman" }]
-# The CPU core, huc6280-python, pinned by git commit: bf20330 = v0.3.0 (the decimal routines of
+# The CPU core, huc6280-python, pinned by git commit: 265df88 = v0.4.0 (issue 0005: the poll rule at
+# its edges; CPUState gains polled_irq_lines, so save states carry it), over bf20330 = v0.3.0 (the decimal routines of
 # 9c47c98 rewritten from a description, results bit-identical; docs/provenance.md), over
 # 9c47c98 = issue 0004 (decimal ADC/SBC with an invalid BCD digit follow Mednafen's formulas by
 # default, Mesen's as decimal_formula="mesen"; valid digits, binary mode, V and cycles unchanged)
@@ -21,7 +22,7 @@ authors = [{ name = "alewman" }]
 # block-transfer zero reads over $0800-$17FF; rungs 0-5, MAME-replayed 21.0M instructions with
 # 0 register divergences). Repin deliberately and rerun the gate (docs/m1-record.md).
 dependencies = [
-    "huc6280-python @ git+https://github.com/alewman/huc6280-python@bf20330d4ce4e0e126331433bad03f4e4d0e9a2e",
+    "huc6280-python @ git+https://github.com/alewman/huc6280-python@265df883bbe1b3fe27077525786c57d580a1edfa",
 ]
 
 [project.urls]
