@@ -1,0 +1,20 @@
+462 images in NEC - PC Engine - TurboGrafx-16
+    303  65.6 %  pce: plain HuCard
+     97  21.0 %  tg16: plain HuCard
+     57  12.3 %  unlisted
+      1   0.2 %  pce: populous
+      1   0.2 %  pce: sf2
+      1   0.2 %  pce: tennokoe
+      1   0.2 %  pce: cdsys3j
+      1   0.2 %  tg16: cdsys3u
+  sizes:
+     12  1 MiB
+      1  16 KiB
+      1  32 KiB
+      8  128 KiB
+      1  2.5 MiB
+    156  256 KiB
+     98  384 KiB
+    172  512 KiB
+     13  768 KiB
+  unlisted (57): Air Zonk (USA, Europe) (Wii U Virtual Console); Be Ball (Hong Kong) (Ja) (Unl); Blazing Lazers (World) (Wii U Virtual Console); Bomberman '93 (Japan) (Wii U Virtual Console); Bomberman '93 (USA, Europe) (Wii U Virtual Console); Bomberman '94 (World) (Ja) (Wii U Virtual Console); Bomberman (USA) (Bomberman Collection); Bonk 3 - Bonk's Big Adventure (USA, Europe) (Wii U Virtual Console); Bonk's Adventure (USA, Europe) (Wii U Virtual Console); Bonk's Revenge (USA) (Alt); Bonk's Revenge (USA); Bonk's Revenge (USA, Europe) (Wii U Virtual Console); Darius Alpha (World) (SG Enhanced) (Darius Cozmic Collection); Devil Crash - Naxat Pinball (Japan) (En) (Wii U Virtual Console); Devil's Crush (USA, Europe) (Wii U Virtual Console); Double Dungeons (Japan) (Wii U Virtual Console); Double Dungeons (USA, Europe) (Wii U Virtual Console); Fantasy Zone (Japan) (En) (PC Engine Mini); Final Soldier (World) (Wii U Virtual Console); Gai Flame (Japan) (Wii U Virtual Console); Galaga '90 (Hong Kong) (En) (Unl); Gradius (Japan) (En) (PC Engine Mini); Gradius (World) (Wii U Virtual Console); Hyper Dyne - SideArms (Hong Kong) (En) (Unl); Jaseiken Necromancer (Japan) (Wii Virtual Console); Jaseiken Necromancer (World) (Ja) (Wii U Virtual Console); Kung Fu, The (Japan) (Wii Virtual Console); Naxat Stadium (Hong Kong) (Ja) (Unl); Neutopia (USA, Europe) (Wii U Virtual Console); Neutopia - Frey no Shou (Japan) (Wii U Virtual Console); Neutopia II (Japan) (Wii U Virtual Console); Neutopia II (USA, Europe) (Wii U Virtual Console); New Adventure Island (USA, Europe) (Wii U Virtual Console); Ninja Spirit (USA, Europe) (Wii U Virtual Console); PC Denjin - Punkic Cyborgs (Japan) (Wii U Virtual Console); PC Genjin - Pithecanthropus Computerurus (Japan) (Wii U Virtual Console); PC Genjin 2 - Pithecanthropus Computerurus (Japan) (Wii U Virtual Console); PC Genjin 2 - Pithecanthropus Computerurus (Japan) (Wii Virtual Console); PC Genjin 3 - Pithecanthropus Computerurus (Japan) (Wii U Virtual Console); Power Sports (Japan) (Wii U Virtual Console) ...

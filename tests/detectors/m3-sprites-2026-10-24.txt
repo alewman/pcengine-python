@@ -1,0 +1,190 @@
+# M3: ours with sprites against Mesen2 (sprites on) and Beetle PCE; scripts/m2_compare.py
+# lines F = ours vs Mesen2 sprites on; B = ours vs Beetle; the rest as docs/m2-record.md. Pinned core 7f789e4 with --drop-vanished-irq.
+# first ten HuCards (300 frames, 450 for Air Zonk and Ballistix)
+Aero Blasters (USA)  (ours300s, 341 dots a row)
+A mesen(no sprites) frame 290 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+F mesen(sprites on) frame 290 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 290 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+D mesen(no sprites) 290 vs beetle 290: dx -18 dy +0: px 1.0000 rows 1.0000
+C ours vs beetle 290 where it equals mesen 290: px 1.0000 rows 1.0000 of 61952 px
+E mesen(sprites) 290 vs beetle 290: dx -18 dy +0: px 1.0000 rows 1.0000
+
+After Burner II (Japan) (En)  (ours300s, 341 dots a row)
+A mesen(no sprites) frame 302 vs ours: dx +14 dy +0: px 0.9388 rows 0.3884 of 70664 px
+F mesen(sprites on) frame 302 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 301 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+D mesen(no sprites) 294 vs beetle 293: dx -18 dy +0: px 0.9316 rows 0.3182
+C ours vs beetle 301 where it equals mesen 302: px 1.0000 rows 1.0000 of 57625 px
+E mesen(sprites) 291 vs beetle 290: dx -18 dy +0: px 1.0000 rows 1.0000
+
+Air Zonk (USA)  (ours450s, 341 dots a row)
+A mesen(no sprites) frame 440 vs ours: dx +14 dy -2: px 0.8861 rows 0.4125 of 70080 px
+F mesen(sprites on) frame 440 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 440 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+D mesen(no sprites) 440 vs beetle 440: dx -22 dy -2: px 0.8701 rows 0.4125
+C ours vs beetle 440 where it equals mesen 440: px 1.0000 rows 1.0000 of 53460 px
+E mesen(sprites) 440 vs beetle 440: dx -18 dy +0: px 1.0000 rows 1.0000
+
+Alien Crush (USA)  (ours300s, 341 dots a row)
+A mesen(no sprites) frame 297 vs ours: dx +14 dy +0: px 0.7462 rows 0.4876 of 70664 px
+F mesen(sprites on) frame 297 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 297 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+D mesen(no sprites) 297 vs beetle 297: dx -18 dy +0: px 0.7105 rows 0.4876
+C ours vs beetle 297 where it equals mesen 297: px 1.0000 rows 1.0000 of 44018 px
+E mesen(sprites) 290 vs beetle 290: dx -18 dy +0: px 1.0000 rows 1.0000
+
+Andre Panza Kick Boxing (USA)  (ours300s, 455 dots a row)
+A mesen(no sprites) frame 290 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+F mesen(sprites on) frame 290 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+B beetle frame 290 vs ours: dx +46 dy +0: px 1.0000 rows 1.0000
+D mesen(no sprites) 290 vs beetle 290: dx -22 dy +0: px 1.0000 rows 1.0000
+C ours vs beetle 290 where it equals mesen 290: px 1.0000 rows 1.0000 of 83006 px
+E mesen(sprites) 290 vs beetle 290: dx -22 dy +0: px 1.0000 rows 1.0000
+
+Armed F (Japan) (En)  (ours300s, 341 dots a row)
+A mesen(no sprites) frame 290 vs ours: dx +14 dy +0: px 0.9723 rows 0.7810 of 70664 px
+F mesen(sprites on) frame 290 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 290 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+D mesen(no sprites) 290 vs beetle 290: dx -18 dy +0: px 0.9684 rows 0.7810
+C ours vs beetle 290 where it equals mesen 290: px 1.0000 rows 1.0000 of 59994 px
+E mesen(sprites) 290 vs beetle 290: dx -18 dy +0: px 1.0000 rows 1.0000
+
+Atomic Robo-Kid Special (Japan) (En)  (ours300s, 341 dots a row)
+A mesen(no sprites) frame 298 vs ours: dx +14 dy +0: px 0.9981 rows 0.9504 of 70664 px
+F mesen(sprites on) frame 298 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 299 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+D mesen(no sprites) 290 vs beetle 290: dx -18 dy +0: px 0.9979 rows 0.9504
+C ours vs beetle 299 where it equals mesen 298: px 1.0000 rows 1.0000 of 61819 px
+E mesen(sprites) 290 vs beetle 290: dx -18 dy +0: px 1.0000 rows 1.0000
+
+Ballistix (USA)  (ours450s, 341 dots a row)
+A mesen(no sprites) frame 440 vs ours: dx +14 dy +0: px 0.9264 rows 0.7355 of 70664 px
+F mesen(sprites on) frame 440 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 440 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+D mesen(no sprites) 440 vs beetle 440: dx -18 dy +0: px 0.9160 rows 0.7355
+C ours vs beetle 440 where it equals mesen 440: px 1.0000 rows 1.0000 of 56750 px
+E mesen(sprites) 440 vs beetle 440: dx -18 dy +0: px 1.0000 rows 1.0000
+
+Barbarian (World) (Amiga 500) (Aftermarket) (Unl)  (ours300s, 455 dots a row)
+A mesen(no sprites) frame 290 vs ours: dx +24 dy +0: px 0.9761 rows 0.7107 of 94138 px
+F mesen(sprites on) frame 296 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+B beetle frame 297 vs ours: dx +46 dy +0: px 1.0000 rows 1.0000
+D mesen(no sprites) 303 vs beetle 309: dx -22 dy +0: px 0.9739 rows 0.7107
+C ours vs beetle 297 where it equals mesen 291: px 1.0000 rows 1.0000 of 80757 px
+E mesen(sprites) 290 vs beetle 290: dx -22 dy +0: px 1.0000 rows 1.0000
+
+Barbarian (World) (Amstrad CPC) (Aftermarket) (Unl)  (ours300s, 455 dots a row)
+A mesen(no sprites) frame 290 vs ours: dx +24 dy +0: px 0.9809 rows 0.7397 of 94138 px
+F mesen(sprites on) frame 300 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+B beetle frame 301 vs ours: dx +46 dy +0: px 1.0000 rows 1.0000
+D mesen(no sprites) 290 vs beetle 292: dx -22 dy +0: px 0.9795 rows 0.7397
+C ours vs beetle 301 where it equals mesen 295: px 1.0000 rows 1.0000 of 81210 px
+E mesen(sprites) 290 vs beetle 291: dx -22 dy +0: px 1.0000 rows 1.0000
+
+# sprite-heavy games and outliers (U15), at 300 and 600 frames
+== Barbarian (World) (ZX Spectrum) (Aftermarket) (Unl) @ 300
+Barbarian (World) (ZX Spectrum) (Aftermarket) (Unl)  (ours300s, 455 dots a row)
+A mesen(no sprites) frame 290 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+F mesen(sprites on) frame 290 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+B beetle frame 290 vs ours: dx +46 dy +0: px 1.0000 rows 1.0000
+E mesen(sprites) 290 vs beetle 290: dx -22 dy +0: px 1.0000 rows 1.0000
+== Barbarian (World) (ZX Spectrum) (Aftermarket) (Unl) @ 600
+Barbarian (World) (ZX Spectrum) (Aftermarket) (Unl)  (ours600s, 455 dots a row)
+A mesen(no sprites) frame 590 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+F mesen(sprites on) frame 590 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+B beetle frame 590 vs ours: dx +46 dy +0: px 1.0000 rows 1.0000
+E mesen(sprites) 590 vs beetle 590: dx -22 dy +0: px 1.0000 rows 1.0000
+== Blazing Lazers (USA) @ 300
+Blazing Lazers (USA)  (ours300s, 341 dots a row)
+A mesen(no sprites) frame 295 vs ours: dx +14 dy +0: px 0.9986 rows 0.8223 of 70664 px
+   first differing pixel: row 52 col 122: mesen 0x000 ours 0x094
+F mesen(sprites on) frame 295 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 295 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+   first differing pixel: row 52 col 122: mesen 0x000 beetle 0x094
+E mesen(sprites) 290 vs beetle 290: dx -18 dy +0: px 1.0000 rows 1.0000
+== Blazing Lazers (USA) @ 600
+Blazing Lazers (USA)  (ours600s, 341 dots a row)
+A mesen(no sprites) frame 590 vs ours: dx +14 dy +0: px 0.9919 rows 0.7438 of 70664 px
+   first differing pixel: row 52 col 122: mesen 0x000 ours 0x094
+F mesen(sprites on) frame 590 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 590 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+   first differing pixel: row 52 col 122: mesen 0x000 beetle 0x094
+E mesen(sprites) 590 vs beetle 590: dx -18 dy +0: px 1.0000 rows 1.0000
+== Bonk's Adventure (USA) @ 300
+Bonk's Adventure (USA)  (ours300s, 341 dots a row)
+A mesen(no sprites) frame 290 vs ours: dx +14 dy +0: px 0.9923 rows 0.8967 of 70664 px
+   first differing pixel: row 59 col 106: mesen 0x049 ours 0x000
+F mesen(sprites on) frame 290 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 290 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+   first differing pixel: row 59 col 106: mesen 0x049 beetle 0x000
+E mesen(sprites) 290 vs beetle 290: dx -18 dy +0: px 1.0000 rows 1.0000
+== Bonk's Adventure (USA) @ 600
+Bonk's Adventure (USA)  (ours600s, 341 dots a row)
+A mesen(no sprites) frame 600 vs ours: dx +14 dy +0: px 0.9923 rows 0.8967 of 70664 px
+   first differing pixel: row 59 col 106: mesen 0x049 ours 0x000
+F mesen(sprites on) frame 600 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 600 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+   first differing pixel: row 59 col 106: mesen 0x049 beetle 0x000
+E mesen(sprites) 590 vs beetle 590: dx -18 dy +0: px 1.0000 rows 1.0000
+== Death Sword (World) (PC) (Aftermarket) (Unl) @ 300
+A mesen(no sprites) frame 290 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+F mesen(sprites on) frame 290 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+B beetle frame 290 vs ours: dx +46 dy +0: px 1.0000 rows 1.0000
+E mesen(sprites) 290 vs beetle 290: dx -22 dy +0: px 1.0000 rows 1.0000
+== Death Sword (World) (PC) (Aftermarket) (Unl) @ 600
+A mesen(no sprites) frame 590 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+F mesen(sprites on) frame 590 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+B beetle frame 590 vs ours: dx +46 dy +0: px 1.0000 rows 1.0000
+E mesen(sprites) 590 vs beetle 590: dx -22 dy +0: px 1.0000 rows 1.0000
+== Gunboat (USA) @ 300
+A mesen(no sprites) frame 290 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+F mesen(sprites on) frame 290 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 290 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+E mesen(sprites) 290 vs beetle 290: dx -18 dy +0: px 1.0000 rows 1.0000
+== Gunboat (USA) @ 600
+A mesen(no sprites) frame 590 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+F mesen(sprites on) frame 590 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 590 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+E mesen(sprites) 590 vs beetle 590: dx -18 dy +0: px 1.0000 rows 1.0000
+== Mai Nurse (World) (Aftermarket) (Unl) @ 300
+A mesen(no sprites) frame 290 vs ours: dx +14 dy +0: px 0.9894 rows 0.7893 of 70664 px
+   first differing pixel: row 46 col 162: mesen 0x17f ours 0x02b
+F mesen(sprites on) frame 299 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 300 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+   first differing pixel: row 46 col 162: mesen 0x17f beetle 0x02b
+E mesen(sprites) 290 vs beetle 290: dx -18 dy +0: px 1.0000 rows 1.0000
+== Mai Nurse (World) (Aftermarket) (Unl) @ 600
+A mesen(no sprites) frame 590 vs ours: dx +14 dy +0: px 0.9894 rows 0.7686 of 70664 px
+   first differing pixel: row 41 col 162: mesen 0x17f ours 0x02b
+F mesen(sprites on) frame 599 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 600 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+   first differing pixel: row 41 col 162: mesen 0x17f beetle 0x02b
+E mesen(sprites) 590 vs beetle 590: dx -18 dy +0: px 1.0000 rows 1.0000
+== R-Type (USA) @ 300
+A mesen(no sprites) frame 300 vs ours: dx +24 dy +0: px 0.9439 rows 0.7479 of 94138 px
+   first differing pixel: row 108 col 123: mesen 0x000 ours 0x1ff
+F mesen(sprites on) frame 300 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+B beetle frame 300 vs ours: dx +46 dy +0: px 1.0000 rows 1.0000
+   first differing pixel: row 108 col 123: mesen 0x000 beetle 0x1ff
+E mesen(sprites) 290 vs beetle 290: dx -22 dy +0: px 1.0000 rows 1.0000
+== R-Type (USA) @ 600
+A mesen(no sprites) frame 600 vs ours: dx +24 dy +0: px 0.9439 rows 0.7479 of 94138 px
+   first differing pixel: row 108 col 123: mesen 0x000 ours 0x1ff
+F mesen(sprites on) frame 600 vs ours: dx +24 dy +0: px 1.0000 rows 1.0000 of 94138 px
+B beetle frame 600 vs ours: dx +46 dy +0: px 1.0000 rows 1.0000
+   first differing pixel: row 108 col 123: mesen 0x000 beetle 0x1ff
+E mesen(sprites) 590 vs beetle 590: dx -22 dy +0: px 1.0000 rows 1.0000
+== Samurai-Ghost (USA) @ 300
+A mesen(no sprites) frame 290 vs ours: dx +14 dy +0: px 0.8440 rows 0.6694 of 70664 px
+   first differing pixel: row 39 col 41: mesen 0x10a ours 0x03a
+F mesen(sprites on) frame 290 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 290 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+   first differing pixel: row 39 col 41: mesen 0x10a beetle 0x03a
+E mesen(sprites) 290 vs beetle 290: dx -18 dy +0: px 1.0000 rows 1.0000
+== Samurai-Ghost (USA) @ 600
+A mesen(no sprites) frame 590 vs ours: dx +14 dy +0: px 0.8440 rows 0.6694 of 70664 px
+   first differing pixel: row 39 col 41: mesen 0x10a ours 0x03a
+F mesen(sprites on) frame 590 vs ours: dx +14 dy +0: px 1.0000 rows 1.0000 of 70664 px
+B beetle frame 590 vs ours: dx +32 dy +0: px 1.0000 rows 1.0000
+   first differing pixel: row 39 col 41: mesen 0x10a beetle 0x03a
+E mesen(sprites) 590 vs beetle 590: dx -18 dy +0: px 1.0000 rows 1.0000

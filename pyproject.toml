@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pcengine-python"
+version = "0.2.0"
+description = "Readable, pure-Python PC Engine / TurboGrafx-16 board with documented sockets for add-ons"
+readme = "README.md"
+# The floor is the newest Python PyPy supports (3.11 as of PyPy 7.3.20); raise it when PyPy does.
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "alewman" }]
+# The CPU core, huc6280-python, pinned by git commit: 6ce348e = the clean rewrite of 2026-11-19
+# (decimal rules re-derived from closed-box tables, results identical; the latched and mednafen
+# switch modes withdrawn; the board uses neither; docs/restart.md there), over
+# 265df88 = v0.4.0 (issue 0005: the poll rule at
+# its edges; CPUState gains polled_irq_lines, so save states carry it), over bf20330 = v0.3.0 (the decimal routines of
+# 9c47c98 rewritten from a description, results bit-identical; docs/provenance.md), over
+# 9c47c98 = issue 0004 (decimal ADC/SBC with an invalid BCD digit follow Mednafen's formulas by
+# default, Mesen's as decimal_formula="mesen"; valid digits, binary mode, V and cycles unchanged)
+# over f31b630 = Release 0.2.0 over 87e42f6 (public HuC6280.opcode), 34f1570 (irq_poll_cycle, U25,
+# default unchanged) and 1a3377f (issue 0003), over a379416 = Release 0.1.0 (issue 0002: an
+# interrupt whose source vanished before entry is no longer entered through IRQ2; issue 0001:
+# block-transfer zero reads over $0800-$17FF; rungs 0-5, MAME-replayed 21.0M instructions with
+# 0 register divergences). Repin deliberately and rerun the gate (docs/m1-record.md).
+dependencies = [
+    "huc6280-python @ git+https://github.com/alewman/huc6280-python@6ce348e13c9ef3009bd07e7938c4b48956eeadc6",
+]
+
+[project.urls]
+Homepage = "https://github.com/alewman/pcengine-python"
+Repository = "https://github.com/alewman/pcengine-python"
+Changelog = "https://github.com/alewman/pcengine-python/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    # the PSG referee comparison (scripts/psg_compare.py, tests/test_psg_referees.py)
+    "numpy",
+    "Pillow",
+    # Pinned: `ruff format --check` must see the formatter the tree was formatted with.
+    "ruff==0.16.8",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pcengine_python"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["reference", "tests/test_roms", "tests/mame_traces", "tests/runs"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B", "C4", "SIM", "PERF", "RUF"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pcengine_python"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers -ra -m 'not slow'"
+pythonpath = ["src", "tests"]
+markers = [
+    "slow: runs a test ROM or an oracle for many emulated seconds (pytest -m slow)",
+    "needs_cpu: needs huc6280-python, the real core (pinned in pyproject)",
+]

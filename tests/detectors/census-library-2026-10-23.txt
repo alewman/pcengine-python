@@ -1,0 +1,45 @@
+179 images in pcengine
+     93  52.0 %  tg16: plain HuCard
+     59  33.0 %  pce: plain HuCard
+     26  14.5 %  unlisted
+      1   0.6 %  pce: populous
+  sizes:
+      3  1 MiB
+      1  72 KiB
+      1  120 KiB
+      3  128 KiB
+      1  160 KiB
+      1  192 KiB
+      1  208 KiB
+     58  256 KiB
+      1  264 KiB
+     33  384 KiB
+      1  480 KiB
+     64  512 KiB
+      3  712 KiB
+      1  736 KiB
+      4  768 KiB
+      2  784 KiB
+      1  872 KiB
+  unlisted (26): Barbarian (World) (Amiga 500) (Aftermarket) (Unl); Barbarian (World) (Amstrad CPC) (Aftermarket) (Unl); Barbarian (World) (Atari ST) (Aftermarket) (Unl); Barbarian (World) (Commodore 64) (Aftermarket) (Unl); Barbarian (World) (ZX Spectrum) (Aftermarket) (Unl); Binary Star (World) (Audio) (Aftermarket) (Unl); Bonk's Revenge (USA); Bug Hunt (World) (NEO Coding Compo 2013) (Aftermarket) (Unl); Crash (World) (v1.01) (Aftermarket) (Unl); Death Sword (World) (Apple II) (Aftermarket) (Unl); Death Sword (World) (PC) (Aftermarket) (Unl); Dinoforce (Japan) (En) (Aftermarket) (Unl); Great Fumo Binning, The (World) (Aftermarket) (Unl); HuZERO (World) (Aftermarket) (Unl); Humpball (World) (Aftermarket) (Unl); Island Adventure (World) (NEO Coding Compo 2012) (Aftermarket) (Unl); Loop 2 (World) (Aftermarket) (Unl); Mai Nurse (World) (Aftermarket) (Unl); Maria (World) (Aftermarket) (Unl); Mega Man (World) (v1.01) (Aftermarket) (Unl); Meteor Blaster DX (World) (v1.01) (Aftermarket) (Unl); Nantettatte Engine (World) (Aftermarket) (Unl); Reflectron (World) (Aftermarket) (Unl); Santatlantean (World) (Aftermarket) (Unl); Tongueman's Logic (World) (Aftermarket) (Unl); UWOL - Quest for Money (World) (v1.1) (Aftermarket) (Unl)
+5 images in supergrafx
+      5 100.0 %  sgx: plain HuCard
+  sizes:
+      3  1 MiB
+      2  512 KiB
+80 discs in pcenginecd
+     28  35.0 %  by title: CD-ROM² Super System Card
+     26  32.5 %  by title: CD-ROM System Card
+     13  16.2 %  unlisted
+      9  11.2 %  CD-ROM² Super System Card
+      3   3.8 %  by title: CD-ROM² Arcade System Card
+      1   1.2 %  by title: CD-ROM² Super System Card / CD-ROM² Super System Card
+  sizes:
+      2  0-99 MiB
+      9  200-299 MiB
+      9  300-399 MiB
+     24  400-499 MiB
+     19  500-599 MiB
+     12  600-699 MiB
+      5  700-799 MiB
+  unlisted (13): Baby Jo - The Super Hero (Japan); BuilderLand - The Story of Melba (Japan); Cosmic Fantasy 2 (USA); Exile - Wicked Phenomenon (USA); Fantastic Night Dreams - Cotton (USA); Gate of Thunder + Bonk's Adventure + Bonk's Revenge (USA); PopfulMail (Japan); Rally Championship (Japan) (FABT); Sherlock Holmes - Consulting Detective - Vol. II (USA); Snatcher CD-ROMantic (Japan); Spriggan Mark 2 - Re Terraform Project (Japan); Star Parodier (Japan); Super Air Zonk - Rockabilly-Paradise (USA)
