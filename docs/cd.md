@@ -30,9 +30,8 @@ The Duo/R/RX consoles integrate them. [hw: pcetech §8]
 
 The BIOS is a HuCard image (`syscard3.pce`, 256 KiB, Super CD-ROM² System v3.0 (Japan), SHA-1
 `79f5ff55dd10187c7fd7b8daab0b3ffbd1f56a2c`, the same hash MAME's software list gives
-`scdsys`). It is **bring-your-own**: found read-only in Aubrey's tree at
-`/data/emu/share/batocera/bios/syscard3.pce` (also `/data/emu/images/x55/bios/`, and inside
-`/data/emu/source/bios/PACK FULL BIOS BATOCERA ... .zip`), and every revision is in the No-Intro
+`scdsys`). It is **bring-your-own**: found read-only in Aubrey's frontend BIOS folders (and inside a
+frontend's BIOS pack), and every revision is in the No-Intro
 set (`[BIOS] CD-ROM System (Japan) (En) (v1.0 / v2.0 / v2.1)`, `Super CD-ROM System (v3.0)`,
 `TurboGrafx CD System Card (USA) (v2.0)`, `... Super System Card (USA) (v3.0)`, two Games Express
 cards). It was copied to a scratch directory for the runs below and never into the repository.

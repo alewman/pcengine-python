@@ -8,7 +8,7 @@ Neither referee is a judge: a first difference is a lead to name with its tier, 
 The run stops at the **first** difference in PC, A, X, Y, S, P (B left out: not a stored flag of
 the core), MPR1-MPR4 or the clock since the first instruction, and prints the neighbourhood.
 
-The traces (docs/mame-oracle.md; /data/emu/huc6280-python/scripts/mednafen_trace.py, whose binary
+The traces (docs/mame-oracle.md; ../huc6280-python/scripts/mednafen_trace.py, whose binary
 is used by `scripts/mednafen_record.py`) both log one line per instruction *before* it runs:
 
 - MAME: `C PC A X Y S P totalcycles beamy beamx frame MPR1..MPR4` (hex, the clock and beam in

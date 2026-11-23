@@ -110,12 +110,12 @@ decided at level (4) or below is recorded as "provisional, tier 5" in the certif
 
 ## Local romsets (read in place, never copied)
 
-- `/data/emu/roms-retrobat/pcengine/`: 179 `.7z` HuCards (+ `By Genre`, `Best Games` hard-link
+- a frontend library, `pcengine/`: 179 `.7z` HuCards (+ `By Genre`, `Best Games` hard-link
   folders, `gamelist.xml`, `media`); `supergrafx/`: 5; `pcenginecd/`: 80 `.chd`.
-- `/data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine - TurboGrafx-16/`: 462 images
-  (includes `[BIOS]` System Cards); `... SuperGrafx/`: 5; `Redump/NEC - PC Engine CD & TurboGrafx CD/`:
-  551 entries; `MAME/ROMs (non-merged)/`: none needed for `pce`.
-- `/data/emu/share/batocera/bios/syscard3.pce` (Super CD-ROM² v3.0, SHA-1 `79f5ff55...`).
+- `$NO_INTRO_DIR/NEC - PC Engine - TurboGrafx-16/`: 462 images
+  (includes `[BIOS]` System Cards); `... SuperGrafx/`: 5; Redump's `NEC - PC Engine CD & TurboGrafx CD`:
+  551 entries; `$MAME_ROMPATH`: none needed for `pce`.
+- a frontend's BIOS folder, `syscard3.pce` (Super CD-ROM² v3.0, SHA-1 `79f5ff55...`).
 
 ## What is not available
 

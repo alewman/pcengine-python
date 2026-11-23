@@ -120,5 +120,5 @@ Run any Python that reads `reference/` with `python -I`.
 
 Python **>= 3.11** (the newest PyPy supports); ruff `py311`. Modern over compatibility. Reference boards
 are correct, not fast. Never copy a chip file between repositories. ROMs, CHDs, BIOS: never committed.
-Paths under `/data/emu/` in the documents and script defaults are the author's machine: read
+Paths under `/data/emu/` in the dated records are the author's machine: read
 them as "your checkout" and "your ROM directory".

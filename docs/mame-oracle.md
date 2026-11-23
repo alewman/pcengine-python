@@ -27,9 +27,9 @@ picks `tg16` for names containing `(USA)`.
 
 ```sh
 python -I scripts/mame_trace.py pce tests/test_roms/CPU_Test/CPU_Test_10.pce --seconds 1
-python -I scripts/mame_trace.py tg16 "/data/emu/roms-retrobat/pcengine/Bonk's Adventure (USA).7z" \
+python -I scripts/mame_trace.py tg16 "$NO_INTRO_DIR/NEC - PC Engine - TurboGrafx-16/Bonk's Adventure (USA).zip" \
     --no-trace --seconds 20        # snapshot only: snap/tg16/0000.png at exit
-python -I scripts/mame_trace.py sgx  "/data/emu/roms-retrobat/supergrafx/Battle Ace (Japan) (En).7z" --seconds 3
+python -I scripts/mame_trace.py sgx  "$NO_INTRO_DIR/NEC - PC Engine SuperGrafx/Battle Ace (Japan) (En).zip" --seconds 3
 ```
 
 which runs, in a fresh `tests/mame_traces/<driver>-<stem>/` (the `.7z` is extracted there with `7z`):

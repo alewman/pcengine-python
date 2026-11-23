@@ -1,6 +1,7 @@
 """SF2, Populous, Tennokoe and the card factory (docs/cartridge.md; emulator tier for all three)."""
 
 import hashlib
+import os
 import zipfile
 import zlib
 from pathlib import Path
@@ -105,12 +106,13 @@ def test_odd_sizes_repeat_modulo_the_image_u18(banks_count):
 
 
 SF2_ZIP = Path(
-    "/data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine - TurboGrafx-16/"
-    "Street Fighter II' - Champion Edition (Japan).zip"
+    os.environ.get("NO_INTRO_DIR", "No-Intro"),
+    "NEC - PC Engine - TurboGrafx-16",
+    "Street Fighter II' - Champion Edition (Japan).zip",
 )
 
 
-@pytest.mark.skipif(not SF2_ZIP.exists(), reason="BYOR: the No-Intro tree is Aubrey's")
+@pytest.mark.skipif(not SF2_ZIP.exists(), reason="BYOR: set NO_INTRO_DIR to the No-Intro sets")
 def test_the_real_sf2_card_read_in_place_has_the_documented_hashes():
     with zipfile.ZipFile(SF2_ZIP) as z:
         data = z.read(z.namelist()[0])

@@ -18,10 +18,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Default: the Mednafen that a huc6280-python checkout beside this one builds.
 BINARY = Path(
     os.environ.get(
         "MEDNAFEN",
-        "/data/emu/huc6280-python/reference/build/mednafen-bin/bin/mednafen",
+        Path(__file__).resolve().parents[2]
+        / "huc6280-python/reference/build/mednafen-bin/bin/mednafen",
     )
 )
 

@@ -17,8 +17,8 @@ name="usage">``): CD-ROM System, Super System, Arcade System, Games Express.
 A repacked disc rarely matches MAME's hash (9 of 80 here), so the fallback is
 the title (regions and flags dropped), marked "by title": approximate.
 
-    python -I scripts/count_carts.py /data/emu/roms-retrobat/pcengine
-    python -I scripts/count_carts.py /data/emu/roms-retrobat/pcenginecd --cd
+    python -I scripts/count_carts.py LIBRARY/pcengine
+    python -I scripts/count_carts.py LIBRARY/pcenginecd --cd
     python -I scripts/count_carts.py DIR --list sf2        # titles in one class
 
 Only top-level files are read: the ``By Genre``/``Best Games`` subdirectories

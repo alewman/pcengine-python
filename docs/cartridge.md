@@ -43,7 +43,7 @@ Two independent sources agree:
 
 ## What the library holds (2026-10-23, `scripts/count_carts.py`, read in place)
 
-`/data/emu/roms-retrobat/pcengine/`: **179 HuCards** (`.7z`, one image each; the `By Genre` and `Best
+A frontend library's `pcengine/`: **179 HuCards** (`.7z`, one image each; the `By Genre` and `Best
 Games` subdirectories are hard links of the same files, so a file count of 184 or 2,981 is wrong);
 `supergrafx/`: **5**; `pcenginecd/`: **80 CHDs** (84 directory entries include `gamelist.xml`,
 `media`, two folders). The 8 "supergrafx files" of the brief are 5 images + folders + the XML.
@@ -64,7 +64,7 @@ Games` subdirectories are hard links of the same files, so a file count of 184 o
 | | unlisted | 13 |
 | | sizes | 2 under 100 MiB, 78 of 200-799 MiB |
 
-The full No-Intro set on disk (`/data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine -
+The full No-Intro set on disk (`$NO_INTRO_DIR/NEC - PC Engine -
 TurboGrafx-16`, 462 images) has **1 SF2, 1 Populous, 1 Tennokoe, 2 system cards**, 98 x 384 KiB,
 156 x 256 KiB, 172 x 512 KiB, 12 x 1 MiB, 13 x 768 KiB and 57 unlisted (mostly Wii U Virtual Console
 re-releases); `tests/detectors/census-nointro-pce.txt`. **So the first-build scope for HuCards is
@@ -75,12 +75,12 @@ tested by running, not classified.
 
 ## Cards read in place from the source tree (not in the library)
 
-The library has no SF2 card, but the Myrient No-Intro tree on disk does (Aubrey, 2026-10-23: "point at it in
+The library has no SF2 card, but the local No-Intro sets on disk do (Aubrey, 2026-10-23: "point at it in
 place"). Nothing is copied into the library or the repository; scripts and tests read it where it is:
 
 | Card | Path | Size | CRC32 | SHA-1 |
 | --- | --- | --- | --- | --- |
-| Street Fighter II' - Champion Edition (Japan) | `/data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine - TurboGrafx-16/Street Fighter II' - Champion Edition (Japan).zip` (one `.pce`) | 2,621,440 (2.5 MiB) | `d15cb6bb` | `e757ecdf857803cb46cdf37ecf4596f6eaccdd76` |
+| Street Fighter II' - Champion Edition (Japan) | `$NO_INTRO_DIR/NEC - PC Engine - TurboGrafx-16/Street Fighter II' - Champion Edition (Japan).zip` (one `.pce`) | 2,621,440 (2.5 MiB) | `d15cb6bb` | `e757ecdf857803cb46cdf37ecf4596f6eaccdd76` |
 
 The SHA-1 is the one MAME 0.285's `pce.xml` software list carries for this card (emulator tier, but an
 independent dump list). The RetroAchievements copy and the T-En (English patch, "Cabbage v1.0") copy sit beside
