@@ -184,3 +184,29 @@ the same runner) because `run.py` has no sprite switch yet; the Mednafen referee
 read. The MAME referee (MIT harness over a BSD-3-Clause file) and
 `scripts/libretro_run.py` (the libretro ABI, MIT) stay.
 
+## Closed-box sources removed (2026-11-24)
+
+Aubrey's rule of 2026-11-24: an MIT repository does not download or keep the source of
+anything the family's `sources.md` marks closed box only, unless a program with no shipped
+build is built from it. Pins removed from `scripts/pinned_repos.json`, trees moved aside
+unopened, out of the repository (not deleted): Beetle PCE
+(https://github.com/libretro/beetle-pce-libretro @ `b96c11e095b6a40a412d2da02766ae1c3f4fd539`,
+GPL-2.0+), Geargrafx (https://github.com/drhelius/Geargrafx @
+`57c257dda25f441fff3c63a63bbc4ba7cbb713e3`, GPL-3.0) and Mesen2
+(https://github.com/SourMesen/Mesen2 @ `b9fa69ddc6d0a331fb103fdb5eef6904305703c2`, GPL-3.0);
+TurboGrafx16_MiSTer's `rtl/` left its sparse list (its `docs/`, Hudson's manuals, stays). The
+libretro cores built inside the Beetle and Geargrafx trees were copied out first to
+`reference/build-beetle-pce/` and `reference/build-geargrafx/` (sha1 `e51f5697`, `38bae175`);
+`m2_refs.py`, `detectors_compare.py` and `libretro_run.py` point there (shipped cores for a fresh
+checkout).
+
+**Kept, with a question for Aubrey:** mednafenPceDev (`55dba394`, GPL-2.0+), because the
+Mednafen PSG referee in emu-tools-gpl compiles its `pce_psg.cpp` and no shipped build exists.
+
+Passages rewritten: validation.md's Mesen2 traps (the known case: `PceVpc::ProcessStartFrame` and
+`PceDefaultVideoFilter::InitLookupTable` dropped; the black frames and the skipped frames kept
+as OBSERVED; the exact skip condition marked HYPOTHESIS), Beetle's quoted `vdc.cpp` comment with
+line numbers (now HYPOTHESIS, no quote), psg.md's Mesen2 and Mednafen source paths, sockets.md's
+Mesen2 file name. The configuration fields the driver sets (`PcEngineConfig.Palette`,
+`DisableFrameSkipping`) are the library's exported interface and stay named.
+

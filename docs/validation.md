@@ -54,22 +54,25 @@ table. They are the judge for "what a register is for"; they are **not** a timin
 | Emulator | Pin | Runs here headless? | Notes |
 | --- | --- | --- | --- |
 | **MAME 0.285** | `/usr/games/mame`, tag `mame0285` | **Yes**, no ROM set needed | [mame-oracle.md](mame-oracle.md); instruction trace; no register log; weak CD |
-| **Mesen2 2.1.1** | `b9fa69dd` (sparse `Core/PCE`); `MesenCore.so` built by famicom-python | **Yes** through a ctypes driver, after setting `PcEngineConfig` (below); since 2026-11-21 a GPL tool outside this repository, since 2026-11-24 run as mesen2-runner (`$EMU_TOOLS_GPL/tools/mesen2/run.py`, machine `pce`) or its old command line (`$EMU_TOOLS_GPL/tools/pcengine-python/mesen_run.py`) | SingleStepTests' author calls Mesen "maybe the most accurate HuC6280 emulator ... passes timing tests other emulators don't. It needs more research" (README, quoted, unverified by us) |
-| **Beetle PCE** (Mednafen's PCE core as libretro) | `b96c11e0`, built with `make` in 22 s (`mednafen_pce_libretro.so`) | **Yes** through `scripts/libretro_run.py` (ctypes libretro host, no SDL) | the long-standing accuracy reference by reputation; its VDC CPU-window is an **admitted approximation** (`vdc.cpp` l.1343-1352: "Assume a 50% hit rate on missing the CPU window") |
-| **Geargrafx** | `57c257dd`, `make` in `platforms/libretro` (23 s) | **Yes**, same host | PCE/SGX/CD with a debugger |
+| **Mesen2 2.1.1** | https://github.com/SourMesen/Mesen2 @ `b9fa69dd`, source not fetched since 2026-11-24 (Aubrey); `MesenCore.so` built by famicom-python | **Yes** through a ctypes driver, after setting `PcEngineConfig` (below); since 2026-11-21 a GPL tool outside this repository, since 2026-11-24 run as mesen2-runner (`$EMU_TOOLS_GPL/tools/mesen2/run.py`, machine `pce`) or its old command line (`$EMU_TOOLS_GPL/tools/pcengine-python/mesen_run.py`) | SingleStepTests' author calls Mesen "maybe the most accurate HuC6280 emulator ... passes timing tests other emulators don't. It needs more research" (README, quoted, unverified by us) |
+| **Beetle PCE** (Mednafen's PCE core as libretro) | https://github.com/libretro/beetle-pce-libretro @ `b96c11e0`, built with `make` in 22 s before 2026-11-24; the core stays at `reference/build-beetle-pce/mednafen_pce_libretro.so` (sha1 `e51f5697`), its source not fetched since (Aubrey) | **Yes** through `scripts/libretro_run.py` (ctypes libretro host, no SDL) | the long-standing accuracy reference by reputation; its VDC CPU-window was read (in Phase 0, from a source comment) to be an approximation, a fixed hit rate on missing the CPU window (HYPOTHESIS, source-read) |
+| **Geargrafx** | https://github.com/drhelius/Geargrafx @ `57c257dd`, `make` in `platforms/libretro` (23 s) before 2026-11-24; the core stays at `reference/build-geargrafx/geargrafx_libretro.so` (sha1 `38bae175`), its source not fetched since | **Yes**, same host | PCE/SGX/CD with a debugger |
 | **mednafenPceDev** (Mednafen proper, pce-devel's fork) | `55dba394` | **Not built.** Mednafen drives SDL; no headless mode was found. Beetle PCE is the same core family and runs | |
 | **ares** | `c76aaffa` (sparse `ares/pce`) | **Not built** (the full tree and its dependencies are large) | readable: per-cycle CPU, VDC `penalty cycle` only when not burst (C4) |
-| **TurboGrafx16 MiSTer** `rtl/` | `827d45f4` | not runnable here (FPGA); its authors' `docs/logs 42.95MHz/*.png` are signal captures **of the FPGA core** (internal `H_CNT`/`V_CNT` appear): tier 5 | the Covell page reports this core running ROM code too fast |
+| **TurboGrafx16 MiSTer** `rtl/` | `827d45f4` (only its `docs/` fetched since 2026-11-24) | not runnable here (FPGA); its authors' `docs/logs 42.95MHz/*.png` are signal captures **of the FPGA core** (internal `H_CNT`/`V_CNT` appear): tier 5 | the Covell page reports this core running ROM code too fast |
 | **SingleStepTests/huc6280** | `4ce378e0`, README only (the data is 185 MB) | not run: the CPU core's concern | "Mesen-generated": **emulator-derived, so a check that the core matches Mesen, not hardware**; it treats RAM as a flat 2 MiB with only MPR translation |
 
 ### Driving Mesen2 headless: two traps (found 2026-10-23)
 
 The snes-python recipe returns **all-black frames** for PC Engine games:
 
-1. The DLL has **no default palette**: Mesen2's UI sets `PcEngineConfig.Palette[512]`
-   (`PceDefaultVideoFilter::InitLookupTable` reads it) and the headless DLL never does.
-2. At maximum speed the PCE core **skips rendering frames** (`PceVpc::ProcessStartFrame`: speed 0 or
-   >150 and <10 ms since the last render) unless `DisableFrameSkipping`.
+1. The DLL has **no default palette**: OBSERVED with Mesen2 at `b9fa69dd`: frames come out all
+   black until `PcEngineConfig.Palette[512]` (a field of the library's exported configuration
+   struct) is set, which Mesen2's UI does and the headless DLL never does.
+2. At maximum speed the PCE core **skips rendering frames**: OBSERVED with Mesen2 at `b9fa69dd`:
+   unless the configuration's `DisableFrameSkipping` is set, frames go unrendered when the core
+   runs unthrottled. (The exact condition, speed and time since the last render, was read from
+   its GPL source before 2026-11-14: HYPOTHESIS, for review.)
 
 The driver (then `scripts/mesen_run.py`, now outside this repository: see the table above) calls `SetPcEngineConfig` with the 8,080-byte struct built by hand (offsets
 measured by compiling `offsetof` against the pinned header: `Palette` at 6032, `DisableFrameSkipping` at

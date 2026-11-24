@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Run a PC Engine card or CD on a libretro core headless (ctypes) and save its last frame.
 
-The cores are built from the pinned trees (docs/validation.md): Beetle PCE
-(``reference/src/beetle-pce``, Mednafen's PCE core, ``make``) gives
-``mednafen_pce_libretro.so``. This host is ~100 lines of ctypes against the
+The core is Beetle PCE (Mednafen's PCE core, https://github.com/libretro/beetle-pce-libretro
+@ b96c11e0, GPL-2.0+), run as a program: ``reference/build-beetle-pce/mednafen_pce_libretro.so``,
+built here before 2026-11-24, or a shipped libretro build. Its source is not fetched since
+(Aubrey's rule; docs/validation.md). This host is ~100 lines of ctypes against the
 libretro ABI (``retro_*``); nothing of the core is copied.
 
     python -I scripts/libretro_run.py CORE.so ROM.pce --frames 600 --png out.png

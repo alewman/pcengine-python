@@ -26,7 +26,9 @@ import emu_tools  # noqa: E402
 #: $EMU_TOOLS_GPL/tools/pcengine-python/mesen_run.py, because the sprite switch this script
 #: needs (--no-sprites) is not in $EMU_TOOLS_GPL/tools/mesen2/run.py yet.
 MESEN_RUN = emu_tools.require(emu_tools.MESEN_RUN_SHIM)
-BEETLE = ROOT / "reference/src/beetle-pce/mednafen_pce_libretro.so"
+#: Beetle PCE runs as a program: the core built here before 2026-11-24 (its source is not
+#: fetched since, Aubrey's rule) or a shipped libretro build at the same path.
+BEETLE = ROOT / "reference/build-beetle-pce/mednafen_pce_libretro.so"
 
 
 def run_one(card: Path, out: Path, frames: int, which: str, presses: tuple[str, ...] = ()) -> None:

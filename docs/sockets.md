@@ -59,7 +59,8 @@ which found the first draft short in six places. Each finding is a design rule h
    granularity (Sega's picture socket, the same minimum); the VPC's per-pixel window edges are
    computed inside the replacement.
 8. **Video timing**: both VDCs run from the VCE's dot clock and the same sync; a second VDC needs
-   the first's line/dot position ([emu: Mesen2 `PceVpc.cpp`, ares `vdp.cpp` clock the VDCs together]).
+   the first's line/dot position ([emu: ares `vdp.cpp` (ISC) clocks the VDCs together; Mesen2 was read to do the same,
+   HYPOTHESIS: GPL source, read before 2026-11-14]).
    One `VideoTiming` record per line, as Sega's socket 6.
 9. **Audio sources**: `AudioSource(rate, gain, take_samples(mclk))`, list on the board; PSG first.
 10. **Reset**: `reset(kind)`. The board is built at power-on: constructing it is the power-on state

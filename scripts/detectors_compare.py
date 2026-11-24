@@ -41,7 +41,8 @@ import emu_tools  # noqa: E402
 #: Mesen2 is driven by a GPL tool outside this repository (docs/provenance.md), run as a
 #: separate program: mesen2-runner at $EMU_TOOLS_GPL/tools/mesen2/run.py, machine pce.
 MESEN_RUN = emu_tools.require(emu_tools.MESEN2_RUN)
-CORE = ROOT / "reference" / "src" / "beetle-pce" / "mednafen_pce_libretro.so"
+#: The core built here before 2026-11-24, or a shipped Beetle PCE libretro build.
+CORE = ROOT / "reference" / "build-beetle-pce" / "mednafen_pce_libretro.so"
 
 
 def quant(img: Image.Image) -> list[list[int]]:

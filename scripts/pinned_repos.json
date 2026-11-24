@@ -31,32 +31,8 @@
   "rev": "55dba394a75f935e6e5a51876b0d523d2314300c",
   "date": "2025-07-02T18:46:50-07:00",
   "sparse": [],
-  "license": "GPL-2.0+ (read and cite only; never copy)",
+  "license": "GPL-2.0+: closed box only. Kept 2026-11-24 only because the Mednafen PSG referee (emu-tools-gpl, build_mednafen.py) compiles its pce_psg.cpp and no shipped build exists; never opened. Moving it to emu-tools-gpl is Aubrey's call",
   "note": "pce-devel's managed Mednafen with PCE fixes (src/pce, src/pce_fast, src/cdrom): the long-standing PCE accuracy reference (Mednafen's PCE core) in a buildable tree. Detector (tier 5) unless it cites a hardware measurement"
- },
- {
-  "path": "reference/src/beetle-pce",
-  "url": "https://github.com/libretro/beetle-pce-libretro",
-  "rev": "b96c11e095b6a40a412d2da02766ae1c3f4fd539",
-  "date": "2026-09-26T12:30:44+02:00",
-  "sparse": [],
-  "license": "GPL-2.0+ (read, cite and RUN; never copy)",
-  "note": "Mednafen's PCE core as a libretro core: buildable here without SDL, so it can be driven headless by a ctypes host (scripts/libretro_run.py)"
- },
- {
-  "path": "reference/src/geargrafx",
-  "url": "https://github.com/drhelius/Geargrafx",
-  "rev": "57c257dda25f441fff3c63a63bbc4ba7cbb713e3",
-  "date": "2026-10-22T23:22:29+02:00",
-  "sparse": [
-   "/LICENSE",
-   "/README.md",
-   "/src/",
-   "/platforms/libretro/",
-   "/platforms/shared/"
-  ],
-  "license": "GPL-3.0 (read and cite only; never copy)",
-  "note": "Geargrafx (drhelius): PCE/SGX/CD emulator with a debugger; readable independent core. Detector"
  },
  {
   "path": "reference/src/ares",
@@ -76,30 +52,16 @@
   "note": "ares PC Engine core: per-cycle HuC6280 and VDC/VCE written by byuu/Near's successors. Detector"
  },
  {
-  "path": "reference/src/mesen2",
-  "url": "https://github.com/SourMesen/Mesen2",
-  "rev": "b9fa69ddc6d0a331fb103fdb5eef6904305703c2",
-  "date": "2026-06-04T18:31:24+09:00",
-  "sparse": [
-   "/LICENSE",
-   "/README.md",
-   "/Core/PCE/"
-  ],
-  "license": "GPL-3.0 (read and cite only; never copy)",
-  "note": "Mesen2 2.1.1 (the commit snes-python and famicom-python pin): its PC Engine core (Core/PCE). The SingleStepTests/huc6280 README calls Mesen 'maybe the most accurate HuC6280 emulator'. Runnable headless via MesenCore.so"
- },
- {
   "path": "reference/src/turbografx-mister",
   "url": "https://github.com/MiSTer-devel/TurboGrafx16_MiSTer",
   "rev": "827d45f45799b8ab3a536510847f2108a92e81bd",
   "date": "2026-07-10T00:11:30+08:00",
   "sparse": [
    "/README.md",
-   "/rtl/",
    "/docs/"
   ],
-  "license": "GPL-2.0+ (read and cite only; never copy)",
-  "note": "TurboGrafx16 MiSTer FPGA core: rtl/ is a reconstruction, not a die model (detector); docs/ is the best single document set found. Provenance per file, read from the PDFs' metadata and headers (2026-10-23): HuC6270/HuC6260/HuC6280 hardware+software/PSG manuals and 'Hu7 CD System' BIOS/Software/PSG-driver manuals are scans of Hudson documents (Acrobat OCR, 2017): manufacturer tier, OCR quality poor; turbografx-16 unit service manual: NEC scan (2014); 'CD Unit SCH.pdf' is an Altium Designer redraw dated 2020-06 titled 'New Output': a community reverse-engineered schematic, NOT NEC's (research tier); 'Super CD-ROM2 System V3.00 (J).ASM' is a commented disassembly of the System Card ROM (community, derived from the BIOS image: do not copy); vdcdox.txt is Schleussinger 1998; pcetech/sgxtech are MacDonald's; 'logs 42.95MHz/*.png' are FPGA-core signal captures (H_CNT/V_CNT are internal counters): emulator-derived tier"
+  "license": "repository unlicensed (no LICENSE): since 2026-11-24 only docs/ (Hudson and NEC manuals, community documents) is fetched; rtl/ is not (Aubrey)",
+  "note": "TurboGrafx16 MiSTer FPGA core: rtl/ (not fetched) is a reconstruction, not a die model (detector); docs/ is the best single document set found. Provenance per file, read from the PDFs' metadata and headers (2026-10-23): HuC6270/HuC6260/HuC6280 hardware+software/PSG manuals and 'Hu7 CD System' BIOS/Software/PSG-driver manuals are scans of Hudson documents (Acrobat OCR, 2017): manufacturer tier, OCR quality poor; turbografx-16 unit service manual: NEC scan (2014); 'CD Unit SCH.pdf' is an Altium Designer redraw dated 2020-06 titled 'New Output': a community reverse-engineered schematic, NOT NEC's (research tier); 'Super CD-ROM2 System V3.00 (J).ASM' is a commented disassembly of the System Card ROM (community, derived from the BIOS image: do not copy); vdcdox.txt is Schleussinger 1998; pcetech/sgxtech are MacDonald's; 'logs 42.95MHz/*.png' are FPGA-core signal captures (H_CNT/V_CNT are internal counters): emulator-derived tier"
  },
  {
   "path": "reference/src/pce-controller-info",

@@ -2,8 +2,8 @@
 
 Tiers: **[mfr]** Hudson's *HuC6280 CMOS Programmable Sound Generator Manual* (37 KB of text,
 `reference/src/turbografx-mister/docs/`), **[hw]** MacDonald `pcetech.txt` §10 and §2.4, **[emu]**
-MAME `src/devices/sound/c6280.cpp`, Mednafen `hw_sound/pce_psg/pce_psg.cpp`, ares
-`ares/pce/psg/`, Mesen2 `Core/PCE/PcePsg*.cpp`. **No hardware audio capture is pinned**: the PSG
+MAME `src/devices/sound/c6280.cpp` (BSD-3), Mednafen's PSG (GPL, run as a closed box through
+the referee), ares `ares/pce/psg/` (ISC), Mesen2 (GPL, run as a closed box). **No hardware audio capture is pinned**: the PSG
 has a manufacturer document and emulators, nothing between. `pce-devel/PCE_Soundtest` ("a quick test
 of HuC6280 vs HuC6280A differences", unknown provenance) is a candidate program, not yet read.
 
