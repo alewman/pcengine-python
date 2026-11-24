@@ -34,7 +34,8 @@ Read in this order.
    approximates it ("assume a 50% hit rate").
 3. **The `(USA)` HuCards run only on MAME's `tg16` driver**: US games check the I/O port's country bit.
 4. **Mesen2's headless DLL returns black PC Engine frames** until `PcEngineConfig` gets a palette and
-   frame skipping is disabled; fixed in `scripts/mesen_run.py`.
+   frame skipping is disabled; fixed in the Mesen2 driver (then `scripts/mesen_run.py`; since
+   2026-11-24 mesen2-runner, `$EMU_TOOLS_GPL/tools/mesen2/run.py`, machine `pce`).
 5. **MAME 0.285 cannot log hardware-page accesses** (`wpset` is logical; Lua taps logged nothing).
 6. **The library has no SF2 card, but the source tree does** ([cartridge.md](cartridge.md), read in place); 152 of 179 cards (listed) need only ROM mirroring; 3 of 80 CDs
    need the Arcade Card; 38 need the Super System Card.

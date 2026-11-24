@@ -54,7 +54,7 @@ table. They are the judge for "what a register is for"; they are **not** a timin
 | Emulator | Pin | Runs here headless? | Notes |
 | --- | --- | --- | --- |
 | **MAME 0.285** | `/usr/games/mame`, tag `mame0285` | **Yes**, no ROM set needed | [mame-oracle.md](mame-oracle.md); instruction trace; no register log; weak CD |
-| **Mesen2 2.1.1** | `b9fa69dd` (sparse `Core/PCE`); `MesenCore.so` built by famicom-python | **Yes** through `scripts/mesen_run.py` (ctypes), after setting `PcEngineConfig` (below) | SingleStepTests' author calls Mesen "maybe the most accurate HuC6280 emulator ... passes timing tests other emulators don't. It needs more research" (README, quoted, unverified by us) |
+| **Mesen2 2.1.1** | `b9fa69dd` (sparse `Core/PCE`); `MesenCore.so` built by famicom-python | **Yes** through a ctypes driver, after setting `PcEngineConfig` (below); since 2026-11-21 a GPL tool outside this repository, since 2026-11-24 run as mesen2-runner (`$EMU_TOOLS_GPL/tools/mesen2/run.py`, machine `pce`) or its old command line (`$EMU_TOOLS_GPL/tools/pcengine-python/mesen_run.py`) | SingleStepTests' author calls Mesen "maybe the most accurate HuC6280 emulator ... passes timing tests other emulators don't. It needs more research" (README, quoted, unverified by us) |
 | **Beetle PCE** (Mednafen's PCE core as libretro) | `b96c11e0`, built with `make` in 22 s (`mednafen_pce_libretro.so`) | **Yes** through `scripts/libretro_run.py` (ctypes libretro host, no SDL) | the long-standing accuracy reference by reputation; its VDC CPU-window is an **admitted approximation** (`vdc.cpp` l.1343-1352: "Assume a 50% hit rate on missing the CPU window") |
 | **Geargrafx** | `57c257dd`, `make` in `platforms/libretro` (23 s) | **Yes**, same host | PCE/SGX/CD with a debugger |
 | **mednafenPceDev** (Mednafen proper, pce-devel's fork) | `55dba394` | **Not built.** Mednafen drives SDL; no headless mode was found. Beetle PCE is the same core family and runs | |
@@ -71,7 +71,7 @@ The snes-python recipe returns **all-black frames** for PC Engine games:
 2. At maximum speed the PCE core **skips rendering frames** (`PceVpc::ProcessStartFrame`: speed 0 or
    >150 and <10 ms since the last render) unless `DisableFrameSkipping`.
 
-`scripts/mesen_run.py` calls `SetPcEngineConfig` with the 8,080-byte struct built by hand (offsets
+The driver (then `scripts/mesen_run.py`, now outside this repository: see the table above) calls `SetPcEngineConfig` with the 8,080-byte struct built by hand (offsets
 measured by compiling `offsetof` against the pinned header: `Palette` at 6032, `DisableFrameSkipping` at
 6014, `RamPowerOnState` at 5968 set to all-zero for determinism, volumes 100). The frame size is 292 x 242
 for the CPU test (the core reports a per-row clock divider and picks the width; `--width` overrides).
