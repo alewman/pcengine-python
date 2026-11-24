@@ -22,8 +22,12 @@ SOURCES = [
     ROOT / "reference/src/mednafen-pce-dev/mednafen/src/hw_sound/pce_psg/pce_psg.cpp",
 ]
 
-#: The Mednafen referee is a GPL tool kept outside this repository (scripts/psg_referees/README.md).
-GPL_TOOLS = os.environ.get("PCE_GPL_TOOLS")
+#: The Mednafen referee is a GPL tool kept outside this repository (scripts/psg_referees/README.md),
+#: built by $EMU_TOOLS_GPL/tools/pcengine-python/psg_referees/build_mednafen.py.
+sys.path.insert(0, str(ROOT / "scripts"))
+import emu_tools  # noqa: E402
+
+MEDNAFEN_BUILD = emu_tools.find(emu_tools.MEDNAFEN_PSG_BUILD)
 
 np = pytest.importorskip("numpy")
 pytestmark = [
@@ -32,7 +36,9 @@ pytestmark = [
         shutil.which("g++") is None or not all(p.exists() for p in SOURCES),
         reason="g++ or the pinned referee sources are missing",
     ),
-    pytest.mark.skipif(GPL_TOOLS is None, reason="PCE_GPL_TOOLS (the Mednafen referee) is not set"),
+    pytest.mark.skipif(
+        MEDNAFEN_BUILD is None, reason=emu_tools.why_missing(emu_tools.MEDNAFEN_PSG_BUILD)
+    ),
 ]
 
 
@@ -40,7 +46,7 @@ pytestmark = [
 def compare(tmp_path_factory):
     out = tmp_path_factory.mktemp("psg_referees")
     builders = [ROOT / "scripts/psg_referees/build_mame.py"]
-    builders.append(Path(GPL_TOOLS) / "psg_referees/build_mednafen.py")
+    builders.append(MEDNAFEN_BUILD)
     env = dict(os.environ, PCENGINE_PYTHON_ROOT=str(ROOT))
     for script in builders:
         subprocess.run([sys.executable, str(script), str(out)], check=True, env=env)

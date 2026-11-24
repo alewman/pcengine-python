@@ -13,15 +13,19 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
-import os
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-#: Mesen2's ctypes driver is a GPL tool kept outside this repository (docs/provenance.md):
-#: PCE_GPL_TOOLS names its directory.
-MESEN_RUN = Path(os.environ.get("PCE_GPL_TOOLS", ROOT / "scripts")) / "mesen_run.py"
+sys.path.insert(0, str(ROOT / "scripts"))
+import emu_tools  # noqa: E402
+
+#: Mesen2 is driven by a GPL tool outside this repository (docs/provenance.md), run as a
+#: separate program: the old pcengine-python command line at
+#: $EMU_TOOLS_GPL/tools/pcengine-python/mesen_run.py, because the sprite switch this script
+#: needs (--no-sprites) is not in $EMU_TOOLS_GPL/tools/mesen2/run.py yet.
+MESEN_RUN = emu_tools.require(emu_tools.MESEN_RUN_SHIM)
 BEETLE = ROOT / "reference/src/beetle-pce/mednafen_pce_libretro.so"
 
 

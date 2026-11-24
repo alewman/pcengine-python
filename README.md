@@ -100,7 +100,7 @@ It needs `git` and `curl`. The wiki pages are live: a changed page is reported a
 | `scripts/fetch_references.py` | the pinned references |
 | `scripts/count_carts.py` | the census: HuCards by MAME software list (CRC), CDs by hash then title |
 | `scripts/mame_trace.py` | MAME 0.285 per-instruction HuC6280 trace for `pce`, `tg16`, `sgx` ([docs/mame-oracle.md](docs/mame-oracle.md)) |
-| `mesen_run.py` (outside the repository since 2026-11-21, a GPL tool: `$PCE_GPL_TOOLS`) | a card on Mesen2's `MesenCore.so` headless, frame to PNG (sets the PC Engine config the DLL lacks) |
+| Mesen2 (GPL tools outside the repository since 2026-11-21: mesen2-runner at `$EMU_TOOLS_GPL/tools/mesen2/run.py`, and the old command line at `$EMU_TOOLS_GPL/tools/pcengine-python/mesen_run.py` for `--no-sprites`) | a card on Mesen2's `MesenCore.so` headless, frame to PNG, run as a separate program (`scripts/emu_tools.py` finds them; `MESEN_CORE` may name the library) |
 | `scripts/libretro_run.py` | a card or CD on a libretro core (Beetle PCE, Geargrafx) through a ctypes host |
 | `scripts/detectors_compare.py` | MAME, Mesen2 and Beetle PCE against each other on a card list |
 | `scripts/m2_ours.py`, `m2_refs.py`, `m2_compare.py` | a card's frame on this board, on Mesen2 and Beetle PCE, and their comparison at the 9-bit palette value (the picture gate) |

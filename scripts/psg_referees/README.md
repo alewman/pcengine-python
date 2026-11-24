@@ -11,8 +11,9 @@ from a register log, so `scripts/psg_compare.py` can compare this board's PSG wi
 `mednafen_psg.cpp`, `mednafen_shim/` and `build_mednafen.py` are compiled together with
 Mednafen's `pce_psg.cpp` (GPL-2.0-or-later) into a GPL program. They left this repository on
 2026-11-21, with its history reset (docs/provenance.md), and are kept with the family's other
-GPL tools; `tests/test_psg_referees.py` builds the referee from the directory named by
-`PCE_GPL_TOOLS` and skips without it. Running the referee is closed-box use: its outputs are
+GPL tools; `tests/test_psg_referees.py` builds the referee with
+`$EMU_TOOLS_GPL/tools/pcengine-python/psg_referees/build_mednafen.py` and skips, naming the
+variable, without it. Running the referee is closed-box use: its outputs are
 measurements, and no code of it enters the board.
 
 ## The MAME referee: MIT harness over a BSD-3-Clause file

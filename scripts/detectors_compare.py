@@ -4,7 +4,7 @@
 
 Each card runs 5 s on MAME (``pce`` driver; ``tg16`` for ``(USA)`` names, whose
 images are the US console's, and ``sgx`` under a ``supergrafx`` directory; the
-``pce`` driver shows a US card as a BRK loop, measured 2026-10-23), 300 frames on Mesen2 (scripts/mesen_run.py) and
+``pce`` driver shows a US card as a BRK loop, measured 2026-10-23), 300 frames on Mesen2 (mesen2-runner, $EMU_TOOLS_GPL/tools/mesen2/run.py) and
 300 frames on Beetle PCE (scripts/libretro_run.py). The three frames have
 different geometry (MAME 1088 columns at 4 per 5 MHz dot; Mesen2 292; Beetle
 256/341/512 by dot clock), so no pixel-for-pixel comparison is possible and
@@ -27,7 +27,6 @@ from __future__ import annotations
 import argparse
 import collections
 import concurrent.futures
-import os
 import subprocess
 import sys
 import tempfile
@@ -36,9 +35,12 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-#: Mesen2's ctypes driver is a GPL tool kept outside this repository (docs/provenance.md):
-#: PCE_GPL_TOOLS names its directory.
-MESEN_RUN = Path(os.environ.get("PCE_GPL_TOOLS", ROOT / "scripts")) / "mesen_run.py"
+sys.path.insert(0, str(ROOT / "scripts"))
+import emu_tools  # noqa: E402
+
+#: Mesen2 is driven by a GPL tool outside this repository (docs/provenance.md), run as a
+#: separate program: mesen2-runner at $EMU_TOOLS_GPL/tools/mesen2/run.py, machine pce.
+MESEN_RUN = emu_tools.require(emu_tools.MESEN2_RUN)
 CORE = ROOT / "reference" / "src" / "beetle-pce" / "mednafen_pce_libretro.so"
 
 
@@ -101,14 +103,18 @@ def frames(card: Path, work: Path, seconds: int) -> dict[str, Image.Image] | str
     if image is None:
         return "no image"
     for name, cmd in (
-        ("mesen", [sys.executable, "-I", str(MESEN_RUN), str(image),
-                   "--frames", str(seconds * 60), "--png", str(work / "mesen.png"), "--home", str(work / "home")]),
+        ("mesen", [sys.executable, "-I", str(MESEN_RUN), "--machine", "pce", "--rom", str(image),
+                   "--frames", str(seconds * 60), "--frames-out", "--out", str(work / "mesen")]),
         ("beetle", [sys.executable, "-I", str(ROOT / "scripts" / "libretro_run.py"), str(CORE), str(image),
                     "--frames", str(seconds * 60), "--png", str(work / "beetle.png"), "--system", str(work)]),
     ):  # fmt: skip
         subprocess.run(cmd, capture_output=True, check=False)
-        if (work / f"{name}.png").exists():
-            found[name] = Image.open(work / f"{name}.png")
+        # mesen2-runner writes the last frame as frame-NNNNNN.png in its --out directory.
+        png = work / f"{name}.png"
+        if name == "mesen":
+            png = next(iter(sorted((work / "mesen").glob("frame-*.png"))), png)
+        if png.exists():
+            found[name] = Image.open(png)
     return (
         found if len(found) == 3 else f"missing {sorted({'mame', 'mesen', 'beetle'} - set(found))}"
     )
