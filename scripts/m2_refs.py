@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -20,29 +22,43 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import emu_tools  # noqa: E402
+import presses as press_specs  # noqa: E402
 
 #: Mesen2 is driven by a GPL tool outside this repository (docs/provenance.md), run as a
-#: separate program: the old pcengine-python command line at
-#: $EMU_TOOLS_GPL/tools/pcengine-python/mesen_run.py, because the sprite switch this script
-#: needs (--no-sprites) is not in $EMU_TOOLS_GPL/tools/mesen2/run.py yet.
-MESEN_RUN = emu_tools.require(emu_tools.MESEN_RUN_SHIM)
+#: separate program: mesen2-runner at $EMU_TOOLS_GPL/tools/mesen2/run.py, machine pce, with
+#: --no-sprites (0.2.0) for the background alone and --input for presses. Each run's
+#: directory (OUTDIR/run-<name>_<n>/) keeps its manifest.json, the provenance of the picture.
+MESEN_RUN = emu_tools.require(emu_tools.MESEN2_RUN)
 #: Beetle PCE runs as a program: the core built here before 2026-11-24 (its source is not
 #: fetched since, Aubrey's rule) or a shipped libretro build at the same path.
 BEETLE = ROOT / "reference/build-beetle-pce/mednafen_pce_libretro.so"
 
 
 def run_one(card: Path, out: Path, frames: int, which: str, presses: tuple[str, ...] = ()) -> None:
-    """One detector to `frames`; `presses` are scripts/presses.py specs, given to it unchanged."""
+    """One detector to `frames`; `presses` are scripts/presses.py specs (Beetle PCE takes them
+    unchanged; Mesen2 takes them as the contract's input script, presses.contract_input)."""
     if which in ("mesen", "mesen_sprites"):
         name = "mesen_ns" if which == "mesen" else "mesen"
-        flags = ["--no-sprites"] if which == "mesen" else []
-        cmd = [sys.executable, "-I", str(MESEN_RUN), str(card), "--frames",
-               str(frames), *flags, "--png", str(out / f"{name}_{frames}.png"),
-               "--home", str(out / f"home{frames}")]  # fmt: skip
-    else:
-        cmd = [sys.executable, "-I", str(ROOT / "scripts/libretro_run.py"), str(BEETLE), str(card),
-               "--frames", str(frames), "--png", str(out / f"beetle_{frames}.png"),
-               "--system", str(out)]  # fmt: skip
+        run = out / f"run-{name}_{frames}"
+        run.mkdir(parents=True, exist_ok=True)
+        cmd = [sys.executable, "-I", str(MESEN_RUN), "--machine", "pce", "--rom", str(card),
+               "--out", str(run), "--frames", str(frames), "--frames-out"]  # fmt: skip
+        if which == "mesen":
+            cmd.append("--no-sprites")
+        if presses:
+            script = run / "input.jsonl"
+            records = press_specs.contract_input(press_specs.parse(list(presses)))
+            script.write_text("".join(json.dumps(r) + "\n" for r in records))
+            cmd += ["--input", str(script)]
+        subprocess.run(cmd, capture_output=True, check=False)
+        # mesen2-runner writes the last frame as frame-NNNNNN.png in its --out directory.
+        png = run / f"frame-{frames:06d}.png"
+        if png.exists():
+            shutil.copyfile(png, out / f"{name}_{frames}.png")
+        return
+    cmd = [sys.executable, "-I", str(ROOT / "scripts/libretro_run.py"), str(BEETLE), str(card),
+           "--frames", str(frames), "--png", str(out / f"beetle_{frames}.png"),
+           "--system", str(out)]  # fmt: skip
     for spec in presses:
         cmd += ["--press", spec]
     subprocess.run(cmd, capture_output=True, check=False)

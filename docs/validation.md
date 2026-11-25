@@ -54,7 +54,7 @@ table. They are the judge for "what a register is for"; they are **not** a timin
 | Emulator | Pin | Runs here headless? | Notes |
 | --- | --- | --- | --- |
 | **MAME 0.285** | `/usr/games/mame`, tag `mame0285` | **Yes**, no ROM set needed | [mame-oracle.md](mame-oracle.md); instruction trace; no register log; weak CD |
-| **Mesen2 2.1.1** | https://github.com/SourMesen/Mesen2 @ `b9fa69dd`, source not fetched since 2026-11-24 (Aubrey); `MesenCore.so` built by famicom-python | **Yes** through a ctypes driver, after setting `PcEngineConfig` (below); since 2026-11-21 a GPL tool outside this repository, since 2026-11-24 run as mesen2-runner (`$EMU_TOOLS_GPL/tools/mesen2/run.py`, machine `pce`) or its old command line (`$EMU_TOOLS_GPL/tools/pcengine-python/mesen_run.py`) | SingleStepTests' author calls Mesen "maybe the most accurate HuC6280 emulator ... passes timing tests other emulators don't. It needs more research" (README, quoted, unverified by us) |
+| **Mesen2 2.1.1** | https://github.com/SourMesen/Mesen2 @ `b9fa69dd`, source not fetched since 2026-11-24 (Aubrey); `MesenCore.so` built by famicom-python until 2026-11-24, since then by mesen2-runner's own `build.sh` (or `MESEN_CORE`; each run's manifest names the library) | **Yes** through a ctypes driver, after setting `PcEngineConfig` (below); since 2026-11-21 a GPL tool outside this repository, since 2026-11-24 run only as mesen2-runner 0.2.0 (`$EMU_TOOLS_GPL/tools/mesen2/run.py`, machine `pce`, with `--no-sprites` and `--input`); the old command line (`tools/pcengine-python/mesen_run.py`) is no longer used (below) | SingleStepTests' author calls Mesen "maybe the most accurate HuC6280 emulator ... passes timing tests other emulators don't. It needs more research" (README, quoted, unverified by us) |
 | **Beetle PCE** (Mednafen's PCE core as libretro) | https://github.com/libretro/beetle-pce-libretro @ `b96c11e0`, built with `make` in 22 s before 2026-11-24; the core stays at `reference/build-beetle-pce/mednafen_pce_libretro.so` (sha1 `e51f5697`), its source not fetched since (Aubrey) | **Yes** through `scripts/libretro_run.py` (ctypes libretro host, no SDL) | the long-standing accuracy reference by reputation; its VDC CPU-window was read (in Phase 0, from a source comment) to be an approximation, a fixed hit rate on missing the CPU window (HYPOTHESIS, source-read) |
 | **Geargrafx** | https://github.com/drhelius/Geargrafx @ `57c257dd`, `make` in `platforms/libretro` (23 s) before 2026-11-24; the core stays at `reference/build-geargrafx/geargrafx_libretro.so` (sha1 `38bae175`), its source not fetched since | **Yes**, same host | PCE/SGX/CD with a debugger |
 | **mednafenPceDev** (Mednafen proper, pce-devel's fork) | `55dba394` | **Not built.** Mednafen drives SDL; no headless mode was found. Beetle PCE is the same core family and runs | |
@@ -78,6 +78,31 @@ The driver (then `scripts/mesen_run.py`, now outside this repository: see the ta
 measured by compiling `offsetof` against the pinned header: `Palette` at 6032, `DisableFrameSkipping` at
 6014, `RamPowerOnState` at 5968 set to all-zero for determinism, volumes 100). The frame size is 292 x 242
 for the CPU test (the core reports a per-row clock divider and picks the width; `--width` overrides).
+
+### Moved to mesen2-runner 0.2.0 (2026-11-24)
+
+`scripts/m2_refs.py` and `scripts/detectors_compare.py` now run only
+`$EMU_TOOLS_GPL/tools/mesen2/run.py --machine pce --rom CARD --out DIR --frames N --frames-out
+[--no-sprites] [--input FILE]` and read `DIR/frame-NNNNNN.png`; `m2_refs.py` keeps each run's
+directory (`OUTDIR/run-<name>_<n>/`, with its `manifest.json`) and turns its presses into the
+contract's input script (`scripts/presses.py`, `contract_input`: a press held from F for H frames is
+a record at F and one at F+H). With `EMU_TOOLS_GPL` unset both stop with exit status 3, naming it.
+Every Mesen2 picture these scripts write is OBSERVED (Mesen2 b9fa69d via mesen2-runner 0.2.0).
+
+The gate, before (HEAD `3b6462e`, the old command line through `MESEN_CORE` naming the tool's own
+build) and after (`run.py`, the same library, SHA-1 `b24ea01b`), every picture compared byte for
+byte, each command run twice on each side:
+
+| Run | Result |
+| --- | --- |
+| `CPU_Test_10.pce`, 300 frames; the same with `--no-sprites`; 200 frames; 200 frames with presses `run@60+6` and `i@120+10` | identical before and after, and run to run (the presses change the picture, so the input reaches the card) |
+| `m2_refs.py` on `CPU_Test_10.pce --around 120` (75 pictures: Mesen2 with and without sprites, Beetle PCE) | 75 of 75 identical |
+| `m2_refs.py` on After Burner II (Japan) (En) from `NO_INTRO_DIR`, `--around 300 --window 3` (21 pictures; here `--no-sprites` changes the picture) | 21 of 21 identical |
+| `m2_refs.py`'s presses (`run_one` with the two presses above, through `--input`) | identical to the old command line's `--press` picture |
+| `detectors_compare.py` on `CPU_Test_10.pce` and After Burner II (it already ran `run.py`) | output identical |
+
+This shows the new command line gives what the old one gave on these cards; it says nothing new
+about the hardware.
 
 ### Detectors against each other (`scripts/detectors_compare.py`, 2026-10-23)
 

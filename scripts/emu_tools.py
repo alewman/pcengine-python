@@ -13,11 +13,10 @@ import os
 import sys
 from pathlib import Path
 
-#: The Mesen2 runner on the contract (machine ``pce``).
+#: The Mesen2 runner on the contract (machine ``pce``; ``--no-sprites`` and ``--input`` from
+#: mesen2-runner 0.2.0). The old pcengine-python command line, a shim at
+#: ``tools/pcengine-python/mesen_run.py``, is no longer used here (2026-11-24).
 MESEN2_RUN = ("EMU_TOOLS_GPL", "tools/mesen2/run.py")
-#: The old pcengine-python Mesen2 command line (a shim over the same runner), kept for
-#: ``--no-sprites``, which ``run.py`` does not offer yet.
-MESEN_RUN_SHIM = ("EMU_TOOLS_GPL", "tools/pcengine-python/mesen_run.py")
 #: The Mednafen PSG referee's build script (not regrouped yet).
 MEDNAFEN_PSG_BUILD = ("EMU_TOOLS_GPL", "tools/pcengine-python/psg_referees/build_mednafen.py")
 

@@ -11,6 +11,11 @@ The clean rewrite of 2026-11-19 ([docs/restart.md](docs/restart.md)): the parts 
 marked "rewrite" or "unclear" were withdrawn unread and written again from Hudson's manuals,
 pcetech.txt and MAME's BSD-3 files; no GPL source was read.
 
+- **Mesen2 through mesen2-runner 0.2.0 only** (2026-11-24): `scripts/m2_refs.py` runs
+  `$EMU_TOOLS_GPL/tools/mesen2/run.py --machine pce` with `--no-sprites` and `--input` (presses
+  through `presses.contract_input`) instead of the old command line; pictures identical before and
+  after (docs/validation.md, "Moved to mesen2-runner 0.2.0").
+
 - **A display that starts before the row** (a small HDS puts it inside the sync) is cropped: its
   early columns are dropped and the row keeps its 1365/divider dots. The new line machine let
   this happen and `render_line` then inserted the pixels instead of overwriting them (the row

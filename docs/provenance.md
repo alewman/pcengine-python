@@ -177,9 +177,10 @@ kept with the family's other GPL tools until the tool repositories take them;
 `tests/test_psg_referees.py`, `scripts/detectors_compare.py` and `scripts/m2_refs.py` find them
 through `EMU_TOOLS_GPL` at their documented paths (`scripts/emu_tools.py`; emu-tools
 `docs/contract.md`, section 5) and run them as separate programs: since 2026-11-24
-`detectors_compare.py` runs mesen2-runner (`tools/mesen2/run.py`, machine `pce`);
-`m2_refs.py` keeps the old command line (`tools/pcengine-python/mesen_run.py`, now a shim over
-the same runner) because `run.py` has no sprite switch yet; the Mednafen referee is built by
+`detectors_compare.py` and `m2_refs.py` run mesen2-runner 0.2.0 (`tools/mesen2/run.py`, machine
+`pce`; `m2_refs.py` moved off the old command line, `tools/pcengine-python/mesen_run.py`, once
+`run.py` gained `--no-sprites`), and read only its outputs (pictures and `manifest.json`); the
+values they give are OBSERVED (Mesen2 b9fa69d via mesen2-runner 0.2.0). The Mednafen referee is built by
 `tools/pcengine-python/psg_referees/build_mednafen.py`. The old `PCE_GPL_TOOLS` is no longer
 read. The MAME referee (MIT harness over a BSD-3-Clause file) and
 `scripts/libretro_run.py` (the libretro ABI, MIT) stay.

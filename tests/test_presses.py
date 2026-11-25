@@ -31,6 +31,19 @@ def test_the_board_mask_and_the_detectors_spellings_name_the_same_buttons():
     assert presses.mesen_lua([]) == ""
 
 
+def test_the_contract_input_script_holds_each_press_from_its_frame_for_its_frames():
+    script = presses.contract_input(presses.parse(["run@400+10", "right-ii@405", "i@500+2"]))
+    assert script == [
+        {"frame": 400, "port": 1, "buttons": ["run"]},
+        {"frame": 405, "port": 1, "buttons": ["ii", "right", "run"]},
+        {"frame": 406, "port": 1, "buttons": ["run"]},
+        {"frame": 410, "port": 1, "buttons": []},
+        {"frame": 500, "port": 1, "buttons": ["i"]},
+        {"frame": 502, "port": 1, "buttons": []},
+    ]
+    assert presses.contract_input([]) == []
+
+
 @pytest.mark.parametrize("spec", ["start@400", "run", "run@x", "run@4+y"])
 def test_a_bad_press_is_refused(spec):
     with pytest.raises(SystemExit):

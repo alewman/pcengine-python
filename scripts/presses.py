@@ -52,6 +52,23 @@ def board_mask(names: frozenset[str]) -> int:
     return mask
 
 
+def contract_input(presses: list[Press]) -> list[dict]:
+    """The presses as the tool contract's input script (emu-tools docs/contract.md, section 4).
+
+    Records of frame, port and buttons: from the moment `frame` frames have completed, pad 1
+    holds exactly the buttons listed until its next record, so a press held from F for H frames
+    is a record at F and one at F+H (with what else is still held). Only changes are written.
+    """
+    edges = sorted({start for _, start, _ in presses} | {s + h for _, s, h in presses})
+    records, last = [], frozenset()
+    for frame in edges:
+        down = held(presses, frame)
+        if down != last:
+            records.append({"frame": frame, "port": 1, "buttons": sorted(down)})
+            last = down
+    return records
+
+
 def mesen_lua(presses: list[Press]) -> str:
     """Lua for Mesen2: sets pad 1 at every input poll; `frames` is the script's frame counter."""
     if not presses:
