@@ -3,9 +3,11 @@
 
     python -I scripts/mednafen_record.py CARD.pce|CARD.7z --out DIR [--count 20000000]
 
-Uses the trace build of the sibling repository (huc6280-python: `python -I scripts/build_mednafen.py`
-builds `reference/build/mednafen-bin/bin/mednafen` from the pinned source plus
-`tools/mednafen-trace.patch`; nothing is built or edited here). Writes DIR/cart.pce (the card,
+Uses emu-tools-gpl2's trace build, `$EMU_TOOLS_GPL2/tools/mednafen/build/pce/bin/mednafen`
+(`python3 -I "$EMU_TOOLS_GPL2/tools/mednafen/build.py" --machine pce` builds it from the pinned
+tarball plus the trace patch; nothing is built or edited here). Exit status 3, naming the
+variable, without it. Until 2026-11-25 it was the build in a huc6280-python checkout beside this
+one, or the one `MEDNAFEN` named (retired with that move: emu-tools docs/contract.md, section 5). Writes DIR/cart.pce (the card,
 a copier header dropped) and DIR/error.log (about 45 bytes per instruction plus the hardware-page
 reads: keep DIR outside the repository, and delete it when done). See docs/m5-lockstep-record.md.
 """
@@ -18,14 +20,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Default: the Mednafen that a huc6280-python checkout beside this one builds.
-BINARY = Path(
-    os.environ.get(
-        "MEDNAFEN",
-        Path(__file__).resolve().parents[2]
-        / "huc6280-python/reference/build/mednafen-bin/bin/mednafen",
-    )
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import emu_tools
 
 
 def load_card(path: Path) -> bytes:
@@ -55,8 +51,10 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--count", type=int, default=20_000_000, help="instructions to log")
     args = parser.parse_args()
-    if not BINARY.exists():
-        raise SystemExit(f"{BINARY} is missing: build it in huc6280-python (see the docstring)")
+    binary = emu_tools.find(emu_tools.MEDNAFEN_PCE)
+    if binary is None:
+        print(emu_tools.why_missing(emu_tools.MEDNAFEN_PCE), file=sys.stderr)
+        return 3
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=True)
     (out / "home").mkdir(exist_ok=True)
@@ -70,7 +68,7 @@ def main() -> int:
         MEDNAFEN_TRACE_COUNT=str(args.count),
     )
     subprocess.run(
-        [str(BINARY), "-sound", "0", "-video.fs", "0", "-pce.stretch", "0", "-nothrottle", "1",
+        [str(binary), "-sound", "0", "-video.fs", "0", "-pce.stretch", "0", "-nothrottle", "1",
          "-filesys.path_firmware", str(out / "home"), str(out / "cart.pce")],
         env=env, cwd=out, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         timeout=1800,

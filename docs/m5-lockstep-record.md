@@ -16,8 +16,9 @@ python scripts/lockstep.py mednafen DIR/error.log DIR/cart.pce [flags]
 python scripts/lockstep.py mame     DIR/error.log CARD.pce [--tg16] [flags]
 ```
 
-- Mednafen is the trace build of the sibling repository (huc6280-python, read only here: its
-  binary, built from the pinned source plus `tools/mednafen-trace.patch`, `--without-libflac`).
+- Mednafen is emu-tools-gpl2's trace build (since 2026-11-25; the sibling huc6280-python's
+  before): `$EMU_TOOLS_GPL2/tools/mednafen/build/pce/bin/mednafen`, built by that tool's
+  `build.py --machine pce` from the pinned source plus its trace patch, `--without-libflac`.
   3.4 million instructions take about a second; 20 million, about 950 MB of log per game.
   The trace is `PC A X Y S P ticks` and `M MPR0-7`, before each instruction; there is no beam
   position. MAME's is `C PC A X Y S P ticks beamy beamx frame MPR1-4`, 30-35 million instructions

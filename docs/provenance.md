@@ -211,3 +211,14 @@ line numbers (now HYPOTHESIS, no quote), psg.md's Mesen2 and Mednafen source pat
 Mesen2 file name. The configuration fields the driver sets (`PcEngineConfig.Palette`,
 `DisableFrameSkipping`) are the library's exported interface and stay named.
 
+
+## The Mednafen trace build found through EMU_TOOLS_GPL2 (2026-11-25)
+
+Decisions page T3: `scripts/mednafen_record.py` runs emu-tools-gpl2's traced Mednafen 1.32.1,
+`$EMU_TOOLS_GPL2/tools/mednafen/build/pce/bin/mednafen` (through `scripts/emu_tools.py`; exit
+status 3 naming the variable without it). Until then it ran the build inside a huc6280-python
+checkout beside this one (a guessed sibling path) or one named by `MEDNAFEN`, which is retired.
+Nothing of Mednafen was ever kept in this repository, so nothing moved out of it and no pin
+changed. Identity check, 2026-11-25: `mednafen_record.py` on huc6280-python's own 8 KiB decimal
+card, `--count 300000`, with the old program and the tool's: the same `error.log` byte for byte
+(13,367,056 bytes, sha1 `fb30b743`; OBSERVED).

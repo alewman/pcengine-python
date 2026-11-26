@@ -17,6 +17,9 @@ from pathlib import Path
 #: mesen2-runner 0.2.0). The old pcengine-python command line, a shim at
 #: ``tools/pcengine-python/mesen_run.py``, is no longer used here (2026-11-24).
 MESEN2_RUN = ("EMU_TOOLS_GPL", "tools/mesen2/run.py")
+#: Mednafen 1.32.1's PC Engine trace build (emu-tools-gpl2's mednafen tool, since 2026-11-25;
+#: scripts/mednafen_record.py).
+MEDNAFEN_PCE = ("EMU_TOOLS_GPL2", "tools/mednafen/build/pce/bin/mednafen")
 #: The Mednafen PSG referee's build script (not regrouped yet).
 MEDNAFEN_PSG_BUILD = ("EMU_TOOLS_GPL", "tools/pcengine-python/psg_referees/build_mednafen.py")
 
