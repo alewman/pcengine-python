@@ -16,7 +16,8 @@ project needs a console, and every question the sources leave open is marked und
 
 That is the **only** tier-1 source found. (The search was a few web queries plus the references of
 the pinned repositories: not exhaustive. No logic-analyser or die-level data for the HuC6270, HuC6260
-or HuC6280 turned up; furrtek's YUV-ROM dump is cited by the PCEdev wiki and was not fetched.)
+or HuC6280 turned up; furrtek's YUV-ROM dump is cited by the PCEdev wiki; it was never fetched and is set aside for
+the author's wishes, see provenance.md, "Author respect".)
 
 ## Tier 2: hardware-verified research (author's tests, no captures)
 

@@ -222,3 +222,19 @@ Nothing of Mednafen was ever kept in this repository, so nothing moved out of it
 changed. Identity check, 2026-11-25: `mednafen_record.py` on huc6280-python's own 8 KiB decimal
 card, `--count 300000`, with the old program and the tool's: the same `error.log` byte for byte
 (13,367,056 bytes, sha1 `fb30b743`; OBSERVED).
+
+## Author respect (2026-11-26)
+
+Kept apart from the licence findings above. furrtek objects to AI use of his work; the family
+sets his work and its lineage aside for that wish, not for its licence (Aubrey, 2026-11-26;
+emulator-lineage `docs/sources.md` at `d9b8ce2`, the "set aside (author's wishes)" verdict).
+
+Audit (a search of every tracked file for furrtek, his dump and the YUV ROM; one fact found):
+
+| Where | What it said | Set-aside source | Other evidence today | What would settle it |
+| --- | --- | --- | --- | --- |
+| `docs/vce.md`, "Test pins" | grounding `TEST1` makes palette reads return an on-die YUV ROM, `TEST2` picks the half | furrtek's YUV-ROM dump, through the PCEdev wiki's VCE pinout page | none: the pin names are on every pinout, the behaviour only in his account | a probe of a real HuC6260 with `TEST1` grounded |
+
+No code, test, table or verdict used the fact; it was a remark for colour research. The text now
+names the pins only and says the behaviour needs new evidence. The dump was never fetched, so
+nothing moved. Counts: 1 fact, 0 backed by other evidence, 1 needing new evidence (not used).

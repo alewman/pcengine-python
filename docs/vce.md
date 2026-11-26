@@ -45,9 +45,12 @@ MacDonald and the emulators, so the 10 MHz mode and bit 2 are tier 2-3 facts, no
   emulators (Mesen2's is the common Rec. 601 luma weighting) and no source here
   is a measurement.
 - **Extra cycle on CPU access**: [memory-map.md](memory-map.md), C4.
-- **Test pins**: grounding `TEST1` makes palette reads return the on-die **YUV ROM** indexed by the
-  address (`TEST2` picks the half) [doc: wiki VCE pinout, citing furrtek's dump]: the only published
-  way to the composite encoding; not useful to the board, useful to colour-accuracy research.
+- **Test pins**: the VCE has `TEST1` and `TEST2` pins. What they do is not stated here: the one
+  published account (the PCEdev wiki's VCE pinout page) rests on furrtek's YUV-ROM dump, which the
+  family sets aside for the author's wishes (Aubrey, 2026-11-26; see provenance.md, "Author
+  respect"). Until this text (to 2026-11-26) it said that grounding `TEST1` returns an on-die YUV
+  ROM through palette reads; nothing in the board ever used that. Needs new evidence (a probe of a
+  real HuC6260 with `TEST1` grounded) before it is stated again.
 
 ## Output colours
 
